@@ -28,4 +28,4 @@ Abhidha, Ankit(me), Arnish, Bishal, Jaynata, Tanushree
 
 I have been assigned the work that you will find in another .md, path is C:\Users\biswa\Desktop\nexxus-db\Ankit_Criminal_Network_Intelligence_Neo4j_Role_Plan.md
 
-Go through this file and understand my work, as i'm totally new with these technolgies like GraphDB, neo4j, cypher. i want you to help me throughout his project. Do give me direct codes tell me what to do next and how to do it. Give Hints
+**Go through this file and understand my work, as i'm totally new with these technolgies like GraphDB, neo4j, cypher. i want you to help me throughout his project. Do give me direct codes tell me what to do next and how to do it. Give Hints**
