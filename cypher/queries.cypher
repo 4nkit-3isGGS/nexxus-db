@@ -1,6 +1,11 @@
-// ==========================================================
-// USEFUL INVESTIGATION CYPHER QUERIES
-// ==========================================================
+// =============================================================================
+// Investigation Cypher Queries & Analysis Templates
+// -----------------------------------------------------------------------------
+// Core graph queries for law enforcement analysis: 1-hop suspect exploration,
+// shared location co-occurrences, multi-hop chains, shortest path traversal,
+// high-value transactions, and dashboard summary metrics.
+// =============================================================================
+
 
 // 1. Get complete profile and 1-hop connections of a suspect (e.g. Rahul Sharma)
 MATCH (p:Person {id: "P001"})-[r]-(target)
