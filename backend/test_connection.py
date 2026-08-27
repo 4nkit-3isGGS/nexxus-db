@@ -1,5 +1,13 @@
+"""
+Database Connection & Initialization Test Script
+------------------------------------------------
+Verifies Neo4j connectivity, applies schema constraints and indexes,
+seeds synthetic test data, and runs sample verification queries.
+"""
+
 import os
 import sys
+
 
 # Ensure backend root is in sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
