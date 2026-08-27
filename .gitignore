@@ -21,3 +21,6 @@ ENV/
 # OS generated
 .DS_Store
 Thumbs.db
+
+# Learning notes
+LESSON_2_ENTITY_RESOLUTION.md
