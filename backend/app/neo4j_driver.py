@@ -1,10 +1,18 @@
+"""
+Neo4j Database Driver & Connection Manager
+------------------------------------------
+Handles connection pooling, session lifecycle, health check verification,
+and parameterized Cypher query execution for the Criminal Network Intelligence System.
+"""
+
 import os
 from dotenv import load_dotenv
 from neo4j import GraphDatabase, Driver
 
 load_dotenv()
 
-NEO4J_URL = os.getenv("NEO4J_URI", "bolt://localhost:7687")
+
+NEO4J_URL = os.getenv("NEO4J_URL", "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "passwordisneo4j")
 NEO4J_DATABASE = os.getenv("NEO4J_DATABASE", "neo4j")
