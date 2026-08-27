@@ -23,4 +23,5 @@ ENV/
 Thumbs.db
 
 # Learning notes
-LESSON_2_ENTITY_RESOLUTION.md
+LESSON_3_INGESTION.md
+describe.md
