@@ -1,4 +1,6 @@
+# Core Dependencies for Criminal Network Intelligence System (Neo4j & Ingestion Backend)
 neo4j>=5.18.0
+
 fastapi>=0.110.0
 uvicorn>=0.28.0
 pydantic>=2.6.0
