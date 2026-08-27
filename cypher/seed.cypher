@@ -1,5 +1,14 @@
+// =============================================================================
+// Seed / Synthetic Criminal Network Dataset
+// -----------------------------------------------------------------------------
+// Populates sample criminal network entities (Person, Phone, Location,
+// Vehicle, Organization) and relationships (CALLED, TRANSACTED_WITH, PRESENT_AT,
+// OWNS_VEHICLE, MEMBER_OF) with timestamps, source provenance, and confidence.
+// =============================================================================
+
 // ==========================================
 // 1. PERSON NODES
+
 // ==========================================
 MERGE (p1:Person {id: "P001"})
 SET p1.name = "Rahul Sharma",
