@@ -1,5 +1,13 @@
+// =============================================================================
+// Graph Schema & Constraints Definition
+// -----------------------------------------------------------------------------
+// Defines uniqueness constraints on stable entity IDs and creates search indexes
+// on normalized attributes for fast lookup in Neo4j.
+// =============================================================================
+
 // ==========================================
 // 1. UNIQUE CONSTRAINTS (Ensures no duplicate IDs)
+
 // ==========================================
 CREATE CONSTRAINT person_id_unique IF NOT EXISTS
 FOR (p:Person) REQUIRE p.id IS UNIQUE;
