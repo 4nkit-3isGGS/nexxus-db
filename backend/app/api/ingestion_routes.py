@@ -7,6 +7,8 @@ POST /api/graph/ingest — accepts Abhidha's NLP output contract, runs full inge
 from fastapi import APIRouter, HTTPException
 from backend.app.ingestion.graph_ingestor import ingest_nlp_payload
 from backend.app.models.entities import NLPOutputPayload
+from backend.app.ingestion.validator import PayloadValidationError
+
 
 router = APIRouter(prefix="/api/graph", tags=["Ingestion"])
 
@@ -22,5 +24,7 @@ def ingest_payload(payload: NLPOutputPayload) -> dict:
     try:
         result = ingest_nlp_payload(payload.model_dump())
         return {"status": "success", **result}
+    except PayloadValidationError as e:
+        raise HTTPException(status_code=422, detail={"message": "Payload Validation Failed", "errors": e.errors})
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ingestion Failed: {str(e)}")
