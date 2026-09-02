@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from backend.app.neo4j_driver import db
 from backend.app.resolution.normalizer import normalize_name, normalize_phone
 from backend.app.resolution.resolver import resolve_entity
+from backend.app.ingestion.validator import validate_or_raise
 
 
 def get_person_candidates() -> list:
@@ -273,6 +274,7 @@ def ingest_rel_called(rel: dict, id_map: dict):
 
     src_phone = src_entity.get("number", "")
     tgt_phone = tgt_entity.get("number", "")
+    
 
     if not src_phone or not tgt_phone:
         print(f"[Ingestion Warning] CALLED: could not resolve phones for {rel['source']} → {rel['target']}")
@@ -473,6 +475,10 @@ def ingest_nlp_payload(payload: dict) -> dict:
 
     Returns a summary dict.
     """
+
+    # ── 0. Validate Payload Schema & Referential Integrity ──
+    validate_or_raise(payload)
+
     entities = payload.get("entities", [])
     relationships = payload.get("relationships", [])
 
