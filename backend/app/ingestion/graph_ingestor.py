@@ -76,13 +76,11 @@ def update_existing_person(person_id: str, suspect: dict, source_doc: str):
     })
 
 def flag_for_review(id1: str, id2: str, confidence_score: float, reason: str):
-    """
-    """
-
+    """Flags two potential duplicate entities for human review."""
     flagged_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-    cypher_query= """
-    MATCH (p1:Person {id: $id1}) , (p2:Person {id: $id2})
-    MERGE (p1)-[r: POSSIBLE_DUPLICATE]-(p2)
+    cypher_query = """
+    MATCH (p1:Person {id: $id1}), (p2:Person {id: $id2})
+    MERGE (p1)-[r:POSSIBLE_DUPLICATE]->(p2)
     SET r.confidence_score = $confidence_score,
         r.reason = $reason,
         r.flagged_at = $flagged_at
