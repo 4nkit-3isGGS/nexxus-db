@@ -159,3 +159,107 @@ def get_evidence(entity_id1: str, entity_id2: str) -> list[dict]:
     except Exception as e:
         print(f"[Neo4j Error] get_evidence failed: {e}")
         return []
+
+
+def get_review_queue() -> list[dict]:
+    """Retrieves all pending entity pairs flagged with POSSIBLE_DUPLICATE
+    for investigator review.
+    """
+    cypher = """
+    MATCH (e1)-[r:POSSIBLE_DUPLICATE]->(e2)
+    RETURN e1.id AS entity1_id,
+           e1.name AS entity1_name,
+           labels(e1)[0] AS entity1_type,
+           e1 {.*} AS entity1_details,
+           e2.id AS entity2_id,
+           e2.name AS entity2_name,
+           labels(e2)[0] AS entity2_type,
+           e2 {.*} AS entity2_details,
+           r.confidence_score AS confidence_score,
+           r.reason AS match_reason,
+           r.entity_type AS entity_type,
+           r.flagged_at AS flagged_at
+    ORDER BY r.confidence_score DESC
+    """
+    try:
+        return db.query(cypher)
+    except Exception as e:
+        print(f"[Neo4j Error] get_review_queue failed: {e}")
+        return []
+
+
+def merge_duplicate_entities(target_id: str, duplicate_id: str) -> dict:
+    """Merges a duplicate entity node into the target entity node.
+    Transfers relationships, consolidates aliases, removes POSSIBLE_DUPLICATE flags,
+    and removes the duplicate node.
+    """
+    from datetime import datetime, timezone
+    ts = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+    cypher = """
+    MATCH (target {id: $target_id}), (dup {id: $duplicate_id})
+    // 1. Consolidate aliases and metadata
+    SET target.aliases = COALESCE(target.aliases, []) + [x IN COALESCE(dup.aliases, []) WHERE NOT x IN COALESCE(target.aliases, [])],
+        target.updated_at = $ts
+
+    // 2. Remove POSSIBLE_DUPLICATE link between them
+    WITH target, dup
+    OPTIONAL MATCH (target)-[pd:POSSIBLE_DUPLICATE]-(dup)
+    DELETE pd
+
+    // 3. Reroute relationships where dup is source
+    WITH target, dup
+    OPTIONAL MATCH (dup)-[r:MEMBER_OF]->(o:Organization)
+    WHERE o.id <> target.id
+    MERGE (target)-[:MEMBER_OF]->(o)
+
+    WITH target, dup
+    OPTIONAL MATCH (dup)-[r:OWNS_PHONE]->(ph:Phone)
+    MERGE (target)-[:OWNS_PHONE]->(ph)
+
+    WITH target, dup
+    OPTIONAL MATCH (dup)-[r:PRESENT_AT]->(l:Location)
+    MERGE (target)-[:PRESENT_AT]->(l)
+
+    WITH target, dup
+    OPTIONAL MATCH (dup)-[r:OWNS_VEHICLE]->(v:Vehicle)
+    MERGE (target)-[:OWNS_VEHICLE]->(v)
+
+    WITH target, dup
+    OPTIONAL MATCH (dup)-[r:TRANSACTED_WITH]->(other)
+    WHERE other.id <> target.id
+    MERGE (target)-[:TRANSACTED_WITH]->(other)
+
+    // 4. Reroute relationships where dup is target
+    WITH target, dup
+    OPTIONAL MATCH (p:Person)-[r:MEMBER_OF]->(dup)
+    WHERE p.id <> target.id
+    MERGE (p)-[:MEMBER_OF]->(target)
+
+    WITH target, dup
+    OPTIONAL MATCH (other)-[r:TRANSACTED_WITH]->(dup)
+    WHERE other.id <> target.id
+    MERGE (other)-[:TRANSACTED_WITH]->(target)
+
+    // 5. Delete duplicate node
+    WITH dup
+    DETACH DELETE dup
+    RETURN true AS merged
+    """
+    try:
+        result = db.query(cypher, {"target_id": target_id, "duplicate_id": duplicate_id, "ts": ts})
+        return {
+            "success": True,
+            "target_id": target_id,
+            "merged_duplicate_id": duplicate_id,
+            "message": f"Entity {duplicate_id} successfully merged into {target_id}",
+        }
+    except Exception as e:
+        print(f"[Neo4j Error] merge_duplicate_entities failed: {e}")
+        return {
+            "success": False,
+            "target_id": target_id,
+            "duplicate_id": duplicate_id,
+            "error": str(e),
+        }
+
