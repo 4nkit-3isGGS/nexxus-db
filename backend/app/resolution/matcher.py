@@ -5,7 +5,11 @@ Implements name similarity scoring via RapidFuzz, phone matching,
 and alias verification for criminal entity deduplication.
 """
 
-from backend.app.resolution.normalizer import normalize_name, normalize_phone
+from backend.app.resolution.normalizer import (
+    normalize_name,
+    normalize_org_name,
+    normalize_phone,
+)
 from rapidfuzz import fuzz
 
 def calculate_name_similarity(name1: str | None, name2: str | None) -> float:
@@ -18,6 +22,21 @@ def calculate_name_similarity(name1: str | None, name2: str | None) -> float:
         return 1.0
 
     # Token sort ratio handles word reordering (e.g. 'sharma rahul' vs 'rahul sharma')
+    fuzz_score = fuzz.token_sort_ratio(norm1, norm2)
+    return round(fuzz_score / 100.0, 4)
+
+
+def calculate_org_similarity(org1: str | None, org2: str | None) -> float:
+    """Calculates fuzzy similarity between two organization names (returns float 0.0 to 1.0)
+    after stripping corporate suffixes like Pvt Ltd, Inc, LLP.
+    """
+    norm1, norm2 = normalize_org_name(org1), normalize_org_name(org2)
+
+    if not norm1 or not norm2:
+        return 0.0
+    if norm1 == norm2:
+        return 1.0
+
     fuzz_score = fuzz.token_sort_ratio(norm1, norm2)
     return round(fuzz_score / 100.0, 4)
 
