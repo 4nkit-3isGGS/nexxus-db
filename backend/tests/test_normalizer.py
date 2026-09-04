@@ -6,8 +6,11 @@ and phone number normalization edge cases.
 """
 
 import pytest
-from backend.app.resolution.normalizer import normalize_name, normalize_phone
-
+from backend.app.resolution.normalizer import (
+    normalize_name,
+    normalize_org_name,
+    normalize_phone,
+)
 
 
 def test_normalize_name():
@@ -37,3 +40,17 @@ def test_normalize_phone():
     ]
     for raw_phone, expected in cases:
         assert normalize_phone(raw_phone) == expected, f"Failed for '{raw_phone}'"
+
+
+def test_normalize_org_name():
+    cases = [
+        ("Shubh Laxmi Finance Pvt Ltd", "shubh laxmi finance"),
+        ("Shubh Laxmi Finance Private Limited", "shubh laxmi finance"),
+        ("SLF Enterprises LLP", "slf"),
+        ("Apex Traders & Co.", "apex"),
+        ("Reliance Solutions Inc", "reliance"),
+        ("", ""),
+        (None, ""),
+    ]
+    for raw_org, expected in cases:
+        assert normalize_org_name(raw_org) == expected, f"Failed for '{raw_org}'"
