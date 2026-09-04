@@ -76,14 +76,21 @@ def update_existing_person(person_id: str, suspect: dict, source_doc: str):
         "timestamp": timestamp,
     })
 
-def flag_for_review(id1: str, id2: str, confidence_score: float, reason: str):
-    """Flags two potential duplicate entities for human review."""
+def flag_for_review(
+    id1: str,
+    id2: str,
+    confidence_score: float,
+    reason: str,
+    entity_type: str | None = None,
+):
+    """Flags two potential duplicate entities (Person, Organization, Location, etc.) for human review."""
     flagged_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     cypher_query = """
-    MATCH (p1:Person {id: $id1}), (p2:Person {id: $id2})
-    MERGE (p1)-[r:POSSIBLE_DUPLICATE]->(p2)
+    MATCH (e1 {id: $id1}), (e2 {id: $id2})
+    MERGE (e1)-[r:POSSIBLE_DUPLICATE]->(e2)
     SET r.confidence_score = $confidence_score,
         r.reason = $reason,
+        r.entity_type = COALESCE($entity_type, labels(e1)[0]),
         r.flagged_at = $flagged_at
     """
 
@@ -92,7 +99,8 @@ def flag_for_review(id1: str, id2: str, confidence_score: float, reason: str):
         "id2": id2,
         "flagged_at": flagged_at,
         "confidence_score": confidence_score,
-        "reason": reason
+        "reason": reason,
+        "entity_type": entity_type,
     })
 
 def ingest_phone(phone_number: str, person_id: str):
@@ -181,46 +189,174 @@ def ingest_location(name: str, source_doc: str, lat: float | None = None, lon: f
     return result[0]["id"] if result else loc_id
 
 
-def ingest_vehicle(registration_number: str, vehicle_type: str | None = None) -> str:
-    """Creates or merges a Vehicle node by registration number. Returns the vehicle ID."""
+def ingest_vehicle(
+    registration_number: str,
+    vehicle_type: str | None = None,
+    source_doc: str = "UNKNOWN",
+) -> str:
+    """Creates or merges a Vehicle node by registration number.
+    Detects vehicle_type conflicts (e.g. Motorcycle vs SUV on same plate)
+    to flag suspected cloned/stolen plates.
+    """
     reg = registration_number.upper().replace(" ", "").replace("-", "")
     veh_id = f"VEH-{uuid.uuid4()}"
     timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
-    cypher_query = """
+    # Check if vehicle registration already exists in graph
+    try:
+        existing = db.query(
+            "MATCH (v:Vehicle {registration_number: $reg}) RETURN v.id AS id, v.vehicle_type AS vehicle_type",
+            {"reg": reg},
+        )
+    except Exception as e:
+        print(f"[Neo4j Warning] Failed to check existing vehicle: {e}")
+        existing = []
+
+    if existing:
+        curr_id = existing[0]["id"]
+        stored_type = existing[0].get("vehicle_type")
+
+        if (
+            stored_type
+            and vehicle_type
+            and stored_type.strip().lower() != vehicle_type.strip().lower()
+        ):
+            conflict_msg = f"Type conflict: recorded as '{stored_type}', reported as '{vehicle_type}' in {source_doc}"
+            cypher_conflict = """
+            MATCH (v:Vehicle {id: $id})
+            SET v.is_cloned_suspicious = true,
+                v.attribute_conflicts = COALESCE(v.attribute_conflicts, []) + [$conflict_msg],
+                v.updated_at = $ts
+            """
+            db.query(cypher_conflict, {
+                "id": curr_id,
+                "conflict_msg": conflict_msg,
+                "ts": timestamp,
+            })
+        else:
+            cypher_update = """
+            MATCH (v:Vehicle {id: $id})
+            SET v.updated_at = $ts,
+                v.vehicle_type = COALESCE(v.vehicle_type, $vtype)
+            """
+            db.query(cypher_update, {
+                "id": curr_id,
+                "vtype": vehicle_type,
+                "ts": timestamp,
+            })
+        return curr_id
+
+
+    cypher_create = """
     MERGE (v:Vehicle {registration_number: $reg})
-    ON CREATE SET v.id   = $id,
+    ON CREATE SET v.id = $id,
                   v.vehicle_type = $vtype,
-                  v.created_at = $ts
-    ON MATCH  SET v.updated_at = $ts
+                  v.is_cloned_suspicious = false,
+                  v.attribute_conflicts = [],
+                  v.created_at = $ts,
+                  v.updated_at = $ts
     RETURN v.id AS id
     """
-    result = db.query(cypher_query, {
-        "id": veh_id, "reg": reg, "vtype": vehicle_type, "ts": timestamp,
+    result = db.query(cypher_create, {
+        "id": veh_id,
+        "reg": reg,
+        "vtype": vehicle_type,
+        "ts": timestamp,
     })
     return result[0]["id"] if result else veh_id
 
 
-def ingest_organization(name: str) -> str:
-    """Creates or merges an Organization node. Returns the org ID."""
-    from backend.app.resolution.normalizer import normalize_name as _nn
+def get_organization_candidates() -> list:
+    """Fetches all Organization nodes from Neo4j with their names, aliases, and tax IDs."""
+    cypher_query = """
+    MATCH (o:Organization)
+    RETURN o.id AS id,
+           o.name AS name,
+           o.normalized_name AS normalized_name,
+           o.aliases AS aliases,
+           o.tax_id AS tax_id
+    """
+    try:
+        return db.query(cypher_query)
+    except Exception as e:
+        print(f"[Neo4j Warning] Failed to fetch organization candidates: {e}")
+        return []
 
-    norm = _nn(name)
+
+def create_new_organization(org: dict, source_doc: str) -> str:
+    """Creates a new Organization node in Neo4j with a generated UUID."""
+    from backend.app.resolution.normalizer import normalize_org_name
+
+    name = org.get("name", "")
+    norm_name = normalize_org_name(name)
     org_id = f"ORG-{uuid.uuid4()}"
     timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
     cypher_query = """
-    MERGE (o:Organization {normalized_name: $norm})
-    ON CREATE SET o.id   = $id,
-                  o.name = $name,
-                  o.created_at = $ts
-    ON MATCH  SET o.updated_at = $ts
-    RETURN o.id AS id
+    MERGE (o:Organization {id: $id})
+    SET o.name = $name,
+        o.normalized_name = $normalized_name,
+        o.aliases = $aliases,
+        o.tax_id = $tax_id,
+        o.created_at = $timestamp,
+        o.updated_at = $timestamp
     """
-    result = db.query(cypher_query, {
-        "id": org_id, "name": name, "norm": norm, "ts": timestamp,
+    db.query(cypher_query, {
+        "id": org_id,
+        "name": name,
+        "normalized_name": norm_name,
+        "aliases": org.get("aliases", []),
+        "tax_id": org.get("tax_id") or org.get("registration_id"),
+        "timestamp": timestamp,
     })
-    return result[0]["id"] if result else org_id
+    return org_id
+
+
+def update_existing_organization(org_id: str, org: dict, source_doc: str):
+    """Merges new aliases into an existing Organization node."""
+    timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    cypher_query = """
+    MATCH (o:Organization {id: $id})
+    SET o.aliases = COALESCE(o.aliases, []) + [x IN $new_aliases WHERE NOT x IN COALESCE(o.aliases, [])],
+        o.updated_at = $timestamp
+    """
+    db.query(cypher_query, {
+        "id": org_id,
+        "new_aliases": org.get("aliases", []),
+        "timestamp": timestamp,
+    })
+
+
+def ingest_organization(org: dict | str, source_doc: str = "UNKNOWN") -> str:
+    """Ingests an Organization entity using the Resolution Engine.
+    Handles AUTO_MERGE, FLAG_FOR_REVIEW, and CREATE_NEW.
+    """
+    from backend.app.resolution.resolver import ResolutionDecision, resolve_organization
+
+    if isinstance(org, str):
+        org = {"name": org}
+
+    candidates = get_organization_candidates()
+    result = resolve_organization(org, candidates)
+
+    if result.decision == ResolutionDecision.AUTO_MERGE:
+        org_id = result.matched_entity_id
+        update_existing_organization(org_id, org, source_doc)
+        return org_id
+
+    elif result.decision == ResolutionDecision.FLAG_FOR_REVIEW:
+        org_id = create_new_organization(org, source_doc)
+        flag_for_review(
+            id1=org_id,
+            id2=result.matched_entity_id,
+            confidence_score=result.confidence_score,
+            reason="; ".join(result.match_reasons),
+            entity_type="Organization",
+        )
+        return org_id
+
+    else:  # CREATE_NEW
+        return create_new_organization(org, source_doc)
 
 
 # ─── Orchestrator Functions ──────────────────────────────────────────────────
@@ -526,12 +662,16 @@ def ingest_nlp_payload(payload: dict) -> dict:
         veh_id = ingest_vehicle(
             registration_number=veh.get("registration_number", ""),
             vehicle_type=veh.get("vehicle_type"),
+            source_doc=veh.get("source_doc", "UNKNOWN"),
         )
         id_map[veh["id"]]["_neo4j_id"] = veh_id
 
     # ── 5. Ingest Organization entities ──
     for org in organizations:
-        org_id = ingest_organization(name=org.get("name", ""))
+        org_id = ingest_organization(
+            org=org,
+            source_doc=org.get("source_doc", "UNKNOWN"),
+        )
         id_map[org["id"]]["_neo4j_id"] = org_id
 
     # ── 6. Process relationships ──
