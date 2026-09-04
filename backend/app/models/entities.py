@@ -33,6 +33,8 @@ class LocationEntity(BaseModel):
     type: Literal["Location"]
     source_doc: str
     name: str
+    city: str | None = None
+    state: str | None = None
     latitude: float | None = None
     longitude: float | None = None
 
@@ -43,6 +45,8 @@ class VehicleEntity(BaseModel):
     source_doc: str
     registration_number: str
     vehicle_type: str | None = None
+    model: str | None = None
+    color: str | None = None
 
 
 class OrganizationEntity(BaseModel):
@@ -50,6 +54,9 @@ class OrganizationEntity(BaseModel):
     type: Literal["Organization"]
     source_doc: str
     name: str
+    aliases: list[str] = Field(default_factory=list)
+    tax_id: str | None = None
+    registration_id: str | None = None
 
 
 # ─── Relationship Model ─────────────────────────────────────────────────────
