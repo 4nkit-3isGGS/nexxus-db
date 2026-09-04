@@ -44,6 +44,7 @@ app.add_middleware(
 app.include_router(health_routes.router)
 app.include_router(ingestion_routes.router)
 app.include_router(entity_routes.router)
+app.include_router(entity_routes.entities_router)
 app.include_router(graph_routes.router)
 
 
