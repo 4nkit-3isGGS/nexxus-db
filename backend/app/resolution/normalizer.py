@@ -41,3 +41,22 @@ def normalize_phone(phone: str | None) -> str:
 
     return digits
 
+
+def normalize_org_name(name: str | None) -> str:
+    """Cleans and standardizes organization names by lowercasing,
+    stripping common legal/corporate suffixes (e.g. Pvt Ltd, Inc, LLP),
+    removing special characters, and collapsing whitespace.
+    """
+    if not name:
+        return ""
+
+    name = name.casefold().strip()
+    name = re.sub(r'[^a-zA-Z0-9\s]', ' ', name)
+    
+    SUFFIXES = r'\b(pvt ltd|private limited|ltd|limited|llp|inc|corp|corporation|co|company|enterprises|services|solutions|traders)\b'
+    name = re.sub(SUFFIXES, '', name, flags=re.IGNORECASE).strip()
+    name = " ".join(name.split())
+
+    return name
+
+
