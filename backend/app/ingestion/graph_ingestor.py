@@ -104,21 +104,22 @@ def flag_for_review(
     })
 
 def ingest_phone(phone_number: str, person_id: str):
-    """
-    """
+    """Links a Person to a Phone node. Creates the Phone node if not present."""
     norm_phone = normalize_phone(phone_number)
+    phone_id = f"PH-{uuid.uuid4()}"
 
     cypher_query = """
     MATCH (p:Person {id: $person_id})
     MERGE (ph:Phone {number: $norm_phone})
-    
-    MERGE (p) - [r: OWNS_PHONE]->(ph)
+    ON CREATE SET ph.id = $phone_id, ph.normalized_number = $norm_phone
+    MERGE (p)-[r:OWNS_PHONE]->(ph)
     """
 
     db.query(cypher_query, {
         "person_id": person_id,
         "phone_number": phone_number,
-        "norm_phone": norm_phone
+        "norm_phone": norm_phone,
+        "phone_id": phone_id,
     })
 
 def ingest_relationship(
@@ -128,7 +129,7 @@ def ingest_relationship(
     properties: dict,
     source_doc: str,
 ):
-    """Creates a relationship between two Person nodes looked up by phone number.
+    """Creates a relationship between Phone nodes and between attributed Person nodes.
 
     Supported rel_types: CALLED, PRESENT_AT, TRANSACTED_WITH.
     Properties dict can carry timestamp, duration_sec, location, amount, etc.
@@ -139,7 +140,6 @@ def ingest_relationship(
     if rel_type not in allowed_types:
         raise ValueError(f"Unsupported relationship type: {rel_type}")
 
-    
     norm_src = normalize_phone(source_phone)
     norm_tgt = normalize_phone(target_phone)
 
@@ -147,21 +147,30 @@ def ingest_relationship(
     prop_assignments = ", ".join(f"r.{key} = ${key}" for key in properties)
     prop_set_clause = f", {prop_assignments}" if prop_assignments else ""
 
-
-    cypher_query = f"""
-    MATCH (src:Person)-[:OWNS_PHONE]->(:Phone {{number: $src_phone}})
-    MATCH (tgt:Person)-[:OWNS_PHONE]->(:Phone {{number: $tgt_phone}})
-    MERGE (src)-[r:{rel_type}]->(tgt)
-    SET r.source_doc_id = $source_doc{prop_set_clause}
-    """
-
     params = {
         "src_phone": norm_src,
         "tgt_phone": norm_tgt,
         "source_doc": source_doc,
         **properties,       # spreads {"timestamp": "...", "duration_sec": 180} etc.
     }
-    db.query(cypher_query, params)
+
+    # 1. Connect Phone to Phone directly (ensures CDR edges are always preserved)
+    cypher_phone_rel = f"""
+    MATCH (ph1:Phone {{number: $src_phone}})
+    MATCH (ph2:Phone {{number: $tgt_phone}})
+    MERGE (ph1)-[r:{rel_type}]->(ph2)
+    SET r.source_doc_id = $source_doc{prop_set_clause}
+    """
+    db.query(cypher_phone_rel, params)
+
+    # 2. Also connect Person to Person if both phones are attributed to suspects
+    cypher_person_rel = f"""
+    MATCH (src:Person)-[:OWNS_PHONE]->(:Phone {{number: $src_phone}})
+    MATCH (tgt:Person)-[:OWNS_PHONE]->(:Phone {{number: $tgt_phone}})
+    MERGE (src)-[r:{rel_type}]->(tgt)
+    SET r.source_doc_id = $source_doc{prop_set_clause}
+    """
+    db.query(cypher_person_rel, params)
 
 
 def ingest_location(name: str, source_doc: str, lat: float | None = None, lon: float | None = None) -> str:
@@ -640,11 +649,16 @@ def ingest_nlp_payload(payload: dict) -> dict:
     # ── 2. Ingest Phone entities ──
     for phone in phones:
         norm_phone = normalize_phone(phone.get("number", ""))
+        phone_id = f"PH-{uuid.uuid4()}"
         cypher = """
         MERGE (ph:Phone {number: $norm})
-        ON CREATE SET ph.id = $id
+        ON CREATE SET ph.id = $new_id, ph.normalized_number = $norm
+        ON MATCH SET ph.normalized_number = COALESCE(ph.normalized_number, $norm)
+        RETURN ph.id AS id
         """
-        db.query(cypher, {"id": phone["id"], "norm": norm_phone})
+        res = db.query(cypher, {"new_id": phone_id, "norm": norm_phone})
+        actual_id = res[0]["id"] if res else phone_id
+        id_map[phone["id"]]["_neo4j_id"] = actual_id
 
     # ── 3. Ingest Location entities ──
     for loc in locations:

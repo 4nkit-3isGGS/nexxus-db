@@ -1,0 +1,747 @@
+{
+  "entities": [
+    {
+      "id": "LOC001",
+      "type": "Location",
+      "source_doc": "FIR_101",
+      "name": "Bidhannagar",
+      "latitude": 22.590425,
+      "longitude": 88.41692,
+      "city": "Bidhannagar",
+      "state": "West Bengal"
+    },
+    {
+      "id": "LOC002",
+      "type": "Location",
+      "source_doc": "FIR_101",
+      "name": "Kolkata",
+      "latitude": 22.6564623,
+      "longitude": 88.4467245,
+      "city": "New Town",
+      "state": "West Bengal"
+    },
+    {
+      "id": "LOC003",
+      "type": "Location",
+      "source_doc": "FIR_101",
+      "name": "North 24 Parganas",
+      "latitude": 22.5685465,
+      "longitude": 88.4144383,
+      "city": "Bidhannagar",
+      "state": "West Bengal"
+    },
+    {
+      "id": "P001",
+      "type": "Person",
+      "source_doc": "FIR_101",
+      "name": "Manoj Tiwari",
+      "aliases": []
+    },
+    {
+      "id": "P002",
+      "type": "Person",
+      "source_doc": "FIR_101",
+      "name": "Ram Tiwari",
+      "aliases": []
+    },
+    {
+      "id": "ORG001",
+      "type": "Organization",
+      "source_doc": "FIR_101",
+      "name": "Shubh Laxmi Finance"
+    },
+    {
+      "id": "P003",
+      "type": "Person",
+      "source_doc": "FIR_101",
+      "name": "Rajesh Kumar Sharma",
+      "aliases": []
+    },
+    {
+      "id": "P004",
+      "type": "Person",
+      "source_doc": "FIR_101",
+      "name": "Bimal Das",
+      "aliases": []
+    },
+    {
+      "id": "LOC004",
+      "type": "Location",
+      "source_doc": "FIR_101",
+      "name": "Salt Lake",
+      "latitude": 22.590425,
+      "longitude": 88.41692,
+      "city": "Bidhannagar",
+      "state": "West Bengal"
+    },
+    {
+      "id": "PH001",
+      "type": "Phone",
+      "source_doc": "FIR_101",
+      "number": "9434567123"
+    },
+    {
+      "id": "PH002",
+      "type": "Phone",
+      "source_doc": "FIR_101",
+      "number": "9832145678"
+    },
+    {
+      "id": "PH003",
+      "type": "Phone",
+      "source_doc": "FIR_101",
+      "number": "9748123456"
+    },
+    {
+      "id": "VEH001",
+      "type": "Vehicle",
+      "source_doc": "FIR_101",
+      "registration_number": "WB02CD5678",
+      "vehicle_type": "Car",
+      "model": "Maruti Swift",
+      "colour": "White"
+    },
+    {
+      "id": "LOC005",
+      "type": "Location",
+      "source_doc": "FIR_102",
+      "name": "Howrah",
+      "latitude": 22.5736296,
+      "longitude": 88.3251045,
+      "city": "Haora",
+      "state": "West Bengal"
+    },
+    {
+      "id": "P005",
+      "type": "Person",
+      "source_doc": "FIR_102",
+      "name": "Debjani Sen",
+      "aliases": []
+    },
+    {
+      "id": "P006",
+      "type": "Person",
+      "source_doc": "FIR_102",
+      "name": "Ashim Sen",
+      "aliases": []
+    },
+    {
+      "id": "LOC006",
+      "type": "Location",
+      "source_doc": "FIR_102",
+      "name": "Shibpur",
+      "latitude": 22.5685792,
+      "longitude": 88.2942109,
+      "city": "Haora",
+      "state": "West Bengal"
+    },
+    {
+      "id": "P007",
+      "type": "Person",
+      "source_doc": "FIR_102",
+      "name": "Sunita Roy",
+      "aliases": []
+    },
+    {
+      "id": "LOC007",
+      "type": "Location",
+      "source_doc": "FIR_102",
+      "name": "Howrah Maidan",
+      "latitude": 22.5838585,
+      "longitude": 88.3339983,
+      "city": "Haora",
+      "state": "West Bengal"
+    },
+    {
+      "id": "P008",
+      "type": "Person",
+      "source_doc": "FIR_102",
+      "name": "Debasish Chatterjee",
+      "aliases": []
+    },
+    {
+      "id": "ORG002",
+      "type": "Organization",
+      "source_doc": "FIR_102",
+      "name": "Toyota"
+    },
+    {
+      "id": "ORG003",
+      "type": "Organization",
+      "source_doc": "FIR_102",
+      "name": "Chatterjee Textiles"
+    },
+    {
+      "id": "PH004",
+      "type": "Phone",
+      "source_doc": "FIR_102",
+      "number": "9007123456"
+    },
+    {
+      "id": "PH005",
+      "type": "Phone",
+      "source_doc": "FIR_102",
+      "number": "8967234561"
+    },
+    {
+      "id": "VEH002",
+      "type": "Vehicle",
+      "source_doc": "FIR_102",
+      "registration_number": "WB06EF9012",
+      "vehicle_type": "Car",
+      "model": "Toyota Innova",
+      "colour": "Black"
+    },
+    {
+      "id": "P009",
+      "type": "Person",
+      "source_doc": "FIR_103",
+      "name": "Anil Kapoor",
+      "aliases": []
+    },
+    {
+      "id": "ORG004",
+      "type": "Organization",
+      "source_doc": "FIR_103",
+      "name": "Kolkata Commercial Bank"
+    },
+    {
+      "id": "P010",
+      "type": "Person",
+      "source_doc": "FIR_103",
+      "name": "Ashok Mehta",
+      "aliases": []
+    },
+    {
+      "id": "ORG005",
+      "type": "Organization",
+      "source_doc": "FIR_103",
+      "name": "Mehta Global Traders"
+    },
+    {
+      "id": "P011",
+      "type": "Person",
+      "source_doc": "FIR_103",
+      "name": "Priya Banerjee",
+      "aliases": []
+    },
+    {
+      "id": "P012",
+      "type": "Person",
+      "source_doc": "FIR_103",
+      "name": "Nikhil Ghosh",
+      "aliases": []
+    },
+    {
+      "id": "P013",
+      "type": "Person",
+      "source_doc": "FIR_103",
+      "name": "R.K. Sharma",
+      "aliases": []
+    },
+    {
+      "id": "ORG006",
+      "type": "Organization",
+      "source_doc": "FIR_103",
+      "name": "Bidhannagar PS"
+    },
+    {
+      "id": "PH006",
+      "type": "Phone",
+      "source_doc": "FIR_103",
+      "number": "7012345698"
+    },
+    {
+      "id": "VEH003",
+      "type": "Vehicle",
+      "source_doc": "FIR_103",
+      "registration_number": "WB01AB1234",
+      "vehicle_type": "Car",
+      "model": "Honda City",
+      "colour": "Silver"
+    },
+    {
+      "id": "PH007",
+      "type": "Phone",
+      "source_doc": "FIR_103",
+      "number": "9123456780"
+    },
+    {
+      "id": "PH008",
+      "type": "Phone",
+      "source_doc": "FIR_103",
+      "number": "8801234567"
+    },
+    {
+      "id": "PH009",
+      "type": "Phone",
+      "source_doc": "FIR_102",
+      "number": "7896541230"
+    }
+  ],
+  "relationships": [
+    {
+      "source": "P004",
+      "target": "ORG001",
+      "type": "MEMBER_OF",
+      "confidence": 0.85,
+      "source_doc": "FIR_101",
+      "evidence": "I state that Bimal Das works for Shubh Laxmi Finance as a field collection agent in the Salt Lake area.",
+      "timestamp": null,
+      "role": null
+    },
+    {
+      "source": "P008",
+      "target": "ORG003",
+      "type": "MEMBER_OF",
+      "confidence": 0.85,
+      "source_doc": "FIR_102",
+      "evidence": "I state that Debasish Chatterjee is known locally to own Chatterjee Textiles, a garment trading business operating out of Howrah.",
+      "timestamp": null,
+      "role": null
+    },
+    {
+      "source": "P002",
+      "target": "PH001",
+      "type": "OWNS_PHONE",
+      "confidence": 0.6,
+      "source_doc": "FIR_101",
+      "evidence": "Police Station: Bidhannagar (Salt Lake) PS, Kolkata District: North 24 Parganas Complainant: Manoj Tiwari, S/o Ram Tiwari, R/o Salt Lake Sector V, Kolkata, Mobile: 9434567123"
+    },
+    {
+      "source": "P003",
+      "target": "PH001",
+      "type": "OWNS_PHONE",
+      "confidence": 0.6,
+      "source_doc": "FIR_101",
+      "evidence": "I state that one Rajesh Kumar Sharma, representing himself as a recovery agent of Shubh Laxmi Finance, began calling me repeatedly on my mobile number 9434567123 from his number 9832145678, threatening dire consequences if I did not repay the amount immediately."
+    },
+    {
+      "source": "P003",
+      "target": "PH002",
+      "type": "OWNS_PHONE",
+      "confidence": 0.6,
+      "source_doc": "FIR_101",
+      "evidence": "I state that one Rajesh Kumar Sharma, representing himself as a recovery agent of Shubh Laxmi Finance, began calling me repeatedly on my mobile number 9434567123 from his number 9832145678, threatening dire consequences if I did not repay the amount immediately."
+    },
+    {
+      "source": "P004",
+      "target": "PH003",
+      "type": "OWNS_PHONE",
+      "confidence": 0.6,
+      "source_doc": "FIR_101",
+      "evidence": "I further state that on the same date, Rajesh Kumar Sharma, along with an associate identified as Bimal Das (mobile number 9748123456), came to my residence at Salt Lake Sector V in a white Maruti Swift bearing registration number WB02CD5678 and threatened me in person."
+    },
+    {
+      "source": "P004",
+      "target": "VEH001",
+      "type": "OWNS_VEHICLE",
+      "confidence": 0.6,
+      "source_doc": "FIR_101",
+      "evidence": "I further state that on the same date, Rajesh Kumar Sharma, along with an associate identified as Bimal Das (mobile number 9748123456), came to my residence at Salt Lake Sector V in a white Maruti Swift bearing registration number WB02CD5678 and threatened me in person.",
+      "timestamp": null
+    },
+    {
+      "source": "P006",
+      "target": "PH004",
+      "type": "OWNS_PHONE",
+      "confidence": 0.6,
+      "source_doc": "FIR_102",
+      "evidence": "Complainant: Debjani Sen, D/o Ashim Sen, R/o Shibpur, Howrah, Mobile: 9007123456"
+    },
+    {
+      "source": "P007",
+      "target": "PH005",
+      "type": "OWNS_PHONE",
+      "confidence": 0.6,
+      "source_doc": "FIR_102",
+      "evidence": "I state that one Sunita Roy, who I later learned operates from a small office near Howrah Maidan coordinating collection agents for Shubh Laxmi Finance, called me on 06/03/2026 from her mobile number 8967234561 pressuring me to clear my dues."
+    },
+    {
+      "source": "P008",
+      "target": "VEH002",
+      "type": "OWNS_VEHICLE",
+      "confidence": 0.6,
+      "source_doc": "FIR_102",
+      "evidence": "I state that Debasish Chatterjee arrived at the meeting in a black Toyota Innova bearing registration number WB06EF9012.",
+      "timestamp": null
+    },
+    {
+      "source": "P012",
+      "target": "PH006",
+      "type": "OWNS_PHONE",
+      "confidence": 0.6,
+      "source_doc": "FIR_103",
+      "evidence": "4. I state that Nikhil Ghosh, whose mobile number is registered as 7012345698 against an address on Park Street, Kolkata, transferred the funds back to Ashok Mehta's account within 48 hours, completing a circular routing of the money."
+    },
+    {
+      "source": "P008",
+      "target": "VEH003",
+      "type": "OWNS_VEHICLE",
+      "confidence": 0.6,
+      "source_doc": "FIR_103",
+      "evidence": "I state that Rajesh Kumar Sharma and Debasish Chatterjee arrived together in a silver Honda City bearing registration number WB01AB1234.",
+      "timestamp": null
+    },
+    {
+      "source": "PH002",
+      "target": "PH003",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9832145678 -> 9748123456, 120s, 2026-03-01T10:15:00Z",
+      "timestamp": "2026-03-01T10:15:00Z",
+      "duration": 120
+    },
+    {
+      "source": "PH003",
+      "target": "PH002",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9748123456 -> 9832145678, 45s, 2026-03-01T18:30:00Z",
+      "timestamp": "2026-03-01T18:30:00Z",
+      "duration": 45
+    },
+    {
+      "source": "PH002",
+      "target": "PH005",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_102",
+      "evidence": "Call record: 9832145678 -> 8967234561, 200s, 2026-03-02T09:00:00Z",
+      "timestamp": "2026-03-02T09:00:00Z",
+      "duration": 200
+    },
+    {
+      "source": "PH005",
+      "target": "PH003",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_102",
+      "evidence": "Call record: 8967234561 -> 9748123456, 90s, 2026-03-03T14:20:00Z",
+      "timestamp": "2026-03-03T14:20:00Z",
+      "duration": 90
+    },
+    {
+      "source": "PH003",
+      "target": "PH005",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_102",
+      "evidence": "Call record: 9748123456 -> 8967234561, 60s, 2026-03-04T11:05:00Z",
+      "timestamp": "2026-03-04T11:05:00Z",
+      "duration": 60
+    },
+    {
+      "source": "PH007",
+      "target": "PH008",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_103",
+      "evidence": "Call record: 9123456780 -> 8801234567, 300s, 2026-03-06T10:00:00Z",
+      "timestamp": "2026-03-06T10:00:00Z",
+      "duration": 300
+    },
+    {
+      "source": "PH008",
+      "target": "PH006",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_103",
+      "evidence": "Call record: 8801234567 -> 7012345698, 150s, 2026-03-07T15:45:00Z",
+      "timestamp": "2026-03-07T15:45:00Z",
+      "duration": 150
+    },
+    {
+      "source": "PH006",
+      "target": "PH007",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_103",
+      "evidence": "Call record: 7012345698 -> 9123456780, 80s, 2026-03-08T09:30:00Z",
+      "timestamp": "2026-03-08T09:30:00Z",
+      "duration": 80
+    },
+    {
+      "source": "PH007",
+      "target": "PH006",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_103",
+      "evidence": "Call record: 9123456780 -> 7012345698, 110s, 2026-03-09T17:00:00Z",
+      "timestamp": "2026-03-09T17:00:00Z",
+      "duration": 110
+    },
+    {
+      "source": "PH008",
+      "target": "PH007",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_103",
+      "evidence": "Call record: 8801234567 -> 9123456780, 70s, 2026-03-10T12:15:00Z",
+      "timestamp": "2026-03-10T12:15:00Z",
+      "duration": 70
+    },
+    {
+      "source": "PH005",
+      "target": "PH004",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_102",
+      "evidence": "Call record: 8967234561 -> 9007123456, 50s, 2026-03-06T11:00:00Z",
+      "timestamp": "2026-03-06T11:00:00Z",
+      "duration": 50
+    },
+    {
+      "source": "PH009",
+      "target": "PH005",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_102",
+      "evidence": "Call record: 7896541230 -> 8967234561, 180s, 2026-03-10T08:00:00Z",
+      "timestamp": "2026-03-10T08:00:00Z",
+      "duration": 180
+    },
+    {
+      "source": "PH005",
+      "target": "PH009",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_102",
+      "evidence": "Call record: 8967234561 -> 7896541230, 95s, 2026-03-10T20:10:00Z",
+      "timestamp": "2026-03-10T20:10:00Z",
+      "duration": 95
+    },
+    {
+      "source": "PH009",
+      "target": "PH007",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_103",
+      "evidence": "Call record: 7896541230 -> 9123456780, 130s, 2026-03-20T09:15:00Z",
+      "timestamp": "2026-03-20T09:15:00Z",
+      "duration": 130
+    },
+    {
+      "source": "PH002",
+      "target": "PH001",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9832145678 -> 9434567123, 42s, 2026-03-05T08:01:00Z",
+      "timestamp": "2026-03-05T08:01:00Z",
+      "duration": 42
+    },
+    {
+      "source": "PH001",
+      "target": "PH002",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9434567123 -> 9832145678, 15s, 2026-03-05T08:15:00Z",
+      "timestamp": "2026-03-05T08:15:00Z",
+      "duration": 15
+    },
+    {
+      "source": "PH002",
+      "target": "PH001",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9832145678 -> 9434567123, 55s, 2026-03-05T08:40:00Z",
+      "timestamp": "2026-03-05T08:40:00Z",
+      "duration": 55
+    },
+    {
+      "source": "PH001",
+      "target": "PH002",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9434567123 -> 9832145678, 10s, 2026-03-05T09:05:00Z",
+      "timestamp": "2026-03-05T09:05:00Z",
+      "duration": 10
+    },
+    {
+      "source": "PH002",
+      "target": "PH001",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9832145678 -> 9434567123, 38s, 2026-03-05T09:20:00Z",
+      "timestamp": "2026-03-05T09:20:00Z",
+      "duration": 38
+    },
+    {
+      "source": "PH001",
+      "target": "PH002",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9434567123 -> 9832145678, 22s, 2026-03-05T09:45:00Z",
+      "timestamp": "2026-03-05T09:45:00Z",
+      "duration": 22
+    },
+    {
+      "source": "PH002",
+      "target": "PH001",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9832145678 -> 9434567123, 60s, 2026-03-05T10:10:00Z",
+      "timestamp": "2026-03-05T10:10:00Z",
+      "duration": 60
+    },
+    {
+      "source": "PH001",
+      "target": "PH002",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9434567123 -> 9832145678, 18s, 2026-03-05T10:35:00Z",
+      "timestamp": "2026-03-05T10:35:00Z",
+      "duration": 18
+    },
+    {
+      "source": "PH002",
+      "target": "PH001",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9832145678 -> 9434567123, 45s, 2026-03-05T11:00:00Z",
+      "timestamp": "2026-03-05T11:00:00Z",
+      "duration": 45
+    },
+    {
+      "source": "PH001",
+      "target": "PH002",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9434567123 -> 9832145678, 12s, 2026-03-05T11:20:00Z",
+      "timestamp": "2026-03-05T11:20:00Z",
+      "duration": 12
+    },
+    {
+      "source": "PH002",
+      "target": "PH001",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9832145678 -> 9434567123, 50s, 2026-03-05T11:45:00Z",
+      "timestamp": "2026-03-05T11:45:00Z",
+      "duration": 50
+    },
+    {
+      "source": "PH001",
+      "target": "PH002",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9434567123 -> 9832145678, 20s, 2026-03-05T12:10:00Z",
+      "timestamp": "2026-03-05T12:10:00Z",
+      "duration": 20
+    },
+    {
+      "source": "PH002",
+      "target": "PH001",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9832145678 -> 9434567123, 33s, 2026-03-05T12:35:00Z",
+      "timestamp": "2026-03-05T12:35:00Z",
+      "duration": 33
+    },
+    {
+      "source": "PH001",
+      "target": "PH002",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9434567123 -> 9832145678, 25s, 2026-03-05T13:00:00Z",
+      "timestamp": "2026-03-05T13:00:00Z",
+      "duration": 25
+    },
+    {
+      "source": "PH002",
+      "target": "PH001",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9832145678 -> 9434567123, 48s, 2026-03-05T13:25:00Z",
+      "timestamp": "2026-03-05T13:25:00Z",
+      "duration": 48
+    },
+    {
+      "source": "PH001",
+      "target": "PH002",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9434567123 -> 9832145678, 14s, 2026-03-05T13:50:00Z",
+      "timestamp": "2026-03-05T13:50:00Z",
+      "duration": 14
+    },
+    {
+      "source": "PH002",
+      "target": "PH001",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9832145678 -> 9434567123, 58s, 2026-03-05T14:15:00Z",
+      "timestamp": "2026-03-05T14:15:00Z",
+      "duration": 58
+    },
+    {
+      "source": "PH001",
+      "target": "PH002",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9434567123 -> 9832145678, 19s, 2026-03-05T14:40:00Z",
+      "timestamp": "2026-03-05T14:40:00Z",
+      "duration": 19
+    },
+    {
+      "source": "PH002",
+      "target": "PH001",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9832145678 -> 9434567123, 36s, 2026-03-05T15:05:00Z",
+      "timestamp": "2026-03-05T15:05:00Z",
+      "duration": 36
+    },
+    {
+      "source": "PH001",
+      "target": "PH002",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9434567123 -> 9832145678, 11s, 2026-03-05T15:30:00Z",
+      "timestamp": "2026-03-05T15:30:00Z",
+      "duration": 11
+    },
+    {
+      "source": "PH002",
+      "target": "PH001",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9832145678 -> 9434567123, 44s, 2026-03-05T15:55:00Z",
+      "timestamp": "2026-03-05T15:55:00Z",
+      "duration": 44
+    },
+    {
+      "source": "PH001",
+      "target": "PH002",
+      "type": "CALLED",
+      "confidence": 0.95,
+      "source_doc": "FIR_101",
+      "evidence": "Call record: 9434567123 -> 9832145678, 16s, 2026-03-05T16:20:00Z",
+      "timestamp": "2026-03-05T16:20:00Z",
+      "duration": 16
+    }
+  ]
+}
