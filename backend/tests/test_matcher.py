@@ -7,6 +7,7 @@ Tests name similarity scoring, phone matching, and alias resolution.
 import pytest
 from backend.app.resolution.matcher import (
     calculate_name_similarity,
+    calculate_org_similarity,
     is_phone_match,
     is_alias_match,
 )
@@ -84,3 +85,36 @@ class TestIsAliasMatch:
         assert is_alias_match(aliases, "Rahul Sharma", threshold=0.99) is False
         # With standard threshold (0.85), slight typo matches
         assert is_alias_match(aliases, "Rahul Sharma", threshold=0.85) is True
+
+
+class TestCalculateOrgSimilarity:
+    def test_suffix_stripping_equivalence(self):
+        # Suffix differences should be normalized away
+        score = calculate_org_similarity(
+            "Shubh Laxmi Finance Pvt Ltd",
+            "Shubh Laxmi Finance Private Limited",
+        )
+        assert score == 1.0
+
+    def test_token_inversion(self):
+        score = calculate_org_similarity(
+            "Finance Shubh Laxmi",
+            "Shubh Laxmi Finance",
+        )
+        assert score == 1.0
+
+    def test_shell_firm_minor_variation(self):
+        score = calculate_org_similarity(
+            "Shubh Laxmi Finance",
+            "Subh Laxmi Financial Services",
+        )
+        assert score >= 0.75
+
+    def test_completely_different_orgs(self):
+        score = calculate_org_similarity(
+            "Shubh Laxmi Finance",
+            "Apex Global Shipping",
+        )
+        # Completely different orgs should score well below review threshold (< 0.75)
+        assert score < 0.50
+
