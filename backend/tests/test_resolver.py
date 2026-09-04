@@ -9,7 +9,9 @@ from backend.app.resolution.resolver import (
     ResolutionDecision,
     ResolutionResult,
     evaluate_candidate,
+    evaluate_org_candidate,
     resolve_entity,
+    resolve_organization,
 )
 
 
@@ -117,3 +119,74 @@ class TestResolveEntity:
         result = resolve_entity(incoming, candidates)
         assert result.decision == ResolutionDecision.AUTO_MERGE
         assert result.matched_entity_id == "p-2"
+
+
+class TestResolveOrganization:
+    def test_auto_merge_on_matching_tax_id(self):
+        result = evaluate_org_candidate(
+            incoming_name="SLF Finance",
+            incoming_aliases=[],
+            incoming_tax_id="07AAAAA0000A1Z5",
+            candidate_id="org-001",
+            candidate_name="Shubh Laxmi Financial Services",
+            candidate_aliases=[],
+            candidate_tax_id="07AAAAA0000A1Z5",
+        )
+        assert result.decision == ResolutionDecision.AUTO_MERGE
+        assert result.matched_entity_id == "org-001"
+        assert result.confidence_score == 1.0
+
+    def test_auto_merge_on_suffix_equivalence(self):
+        result = evaluate_org_candidate(
+            incoming_name="Shubh Laxmi Finance Pvt Ltd",
+            incoming_aliases=[],
+            incoming_tax_id=None,
+            candidate_id="org-002",
+            candidate_name="Shubh Laxmi Finance Private Limited",
+            candidate_aliases=[],
+            candidate_tax_id=None,
+        )
+        assert result.decision == ResolutionDecision.AUTO_MERGE
+        assert result.matched_entity_id == "org-002"
+        assert result.confidence_score >= 0.92
+
+    def test_flag_for_review_on_fuzzy_variant(self):
+        result = evaluate_org_candidate(
+            incoming_name="Shubh Laxmi Finance",
+            incoming_aliases=[],
+            incoming_tax_id=None,
+            candidate_id="org-003",
+            candidate_name="Subh Laxmi Financial Services",
+            candidate_aliases=[],
+            candidate_tax_id=None,
+        )
+        assert result.decision == ResolutionDecision.FLAG_FOR_REVIEW
+        assert result.matched_entity_id == "org-003"
+        assert 0.75 <= result.confidence_score < 0.92
+
+    def test_create_new_distinct_org(self):
+        result = evaluate_org_candidate(
+            incoming_name="Apex Logistics Inc",
+            incoming_aliases=[],
+            incoming_tax_id=None,
+            candidate_id="org-004",
+            candidate_name="Shubh Laxmi Finance",
+            candidate_aliases=[],
+            candidate_tax_id=None,
+        )
+        assert result.decision == ResolutionDecision.CREATE_NEW
+        assert result.matched_entity_id is None
+
+    def test_resolve_organization_best_match(self):
+        incoming = {
+            "name": "Shubh Laxmi Finance Pvt Ltd",
+            "aliases": ["SLF"],
+        }
+        candidates = [
+            {"id": "org-1", "name": "Apex Global Traders", "aliases": []},
+            {"id": "org-2", "name": "Shubh Laxmi Finance", "aliases": ["SLF"]},
+        ]
+        result = resolve_organization(incoming, candidates)
+        assert result.decision == ResolutionDecision.AUTO_MERGE
+        assert result.matched_entity_id == "org-2"
+
