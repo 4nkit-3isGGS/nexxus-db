@@ -58,7 +58,7 @@
   - [ ] Add tool unit tests verifying strict input validation and bounded query limits (e.g. depth $\le 3$).
 
 - [ ] **Phase 2: Investigation State & Supervisor Core (Afternoon Day 1)**
-  - [ ] Define `InvestigationState` TypedDict with typed schemas (plans, hypotheses, evidence items, iteration counter, tool history).
+  - [x] Define `InvestigationState` TypedDict with typed schemas (`Hypothesis`, `ToolInvocation`, `InvestigationState`, `initial_state()`).
   - [ ] Implement `Supervisor Agent` node with planning prompts (analyzes user query, resolves target person, generates 3-5 step plan).
   - [ ] Implement agent routing logic / state transition dispatcher.
 
