@@ -106,9 +106,32 @@ To reflect these new intelligence signals in risk scoring and graph algorithms:
 
 ## 📅 Implementation Checklist for Next Sprint
 
-- [ ] Update `flag_for_review()` in [graph_ingestor.py](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/ingestion/graph_ingestor.py) to remove the `:Person` label restriction.
-- [ ] Implement `resolve_organization()` in [backend/app/resolution/](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/resolution/) using token-based fuzzy matching.
-- [ ] Add vehicle attribute mismatch detection in `ingest_vehicle()`.
-- [ ] Add `GET /api/entities/review-queue` endpoint in [backend/app/api/entity_routes.py](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/api/entity_routes.py).
-- [ ] Add `POST /api/entities/merge` endpoint in [backend/app/api/entity_routes.py](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/api/entity_routes.py).
-- [ ] Test end-to-end ingestion of [output_contract.JSON](file:///c:/Users/biswa/Desktop/nexxus-db/output_contract.JSON) with the updated engine.
+- [x] Update `flag_for_review()` in [graph_ingestor.py](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/ingestion/graph_ingestor.py) to remove the `:Person` label restriction.
+- [x] Implement `resolve_organization()` in [backend/app/resolution/](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/resolution/) using token-based fuzzy matching.
+- [x] Add vehicle attribute mismatch detection in `ingest_vehicle()`.
+- [x] Add `GET /api/entities/review-queue` endpoint in [backend/app/api/entity_routes.py](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/api/entity_routes.py).
+- [x] Add `POST /api/entities/merge` endpoint in [backend/app/api/entity_routes.py](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/api/entity_routes.py).
+- [x] Test end-to-end ingestion of [output_contract.JSON](file:///c:/Users/biswa/Desktop/nexxus-db/output_contract.JSON) with the updated engine (47 passing tests).
+
+---
+
+## 🔮 Part 3: Upcoming Roadmap — Blockchain, Cybersecurity & LangGraph Integration
+
+### 1. 🛡️ Blockchain & Cybersecurity (SIH26189 Track Fulfillment)
+To defend our solution against SIH theme scrutiny without bloating the architecture:
+* **Evidence Chain of Custody (Cryptographic Ledger):**
+  * Generate a SHA-256 state hash for every incoming FIR, extracted entity set, and investigator merge decision (`AUTO_MERGE` or manual merge).
+  * Persist the evidence hash and block timestamp onto graph nodes (`evidence_hash`, `ledger_tx_id`) compliant with legal admissibility (Section 65B of Bharatiya Sakshya Adhiniyam).
+  * Local verifiable hash-chain / lightweight tamper-evident ledger verifying that graph data has not been modified after ingestion.
+* **Cybercrime Graph Entities:**
+  * Extend schema to include `CryptoWallet` (Bitcoin, USDT), `IPAddress`, and `IMEI` hardware nodes.
+  * Connect telecommunication fraud (SIM boxes) $\rightarrow$ mule bank accounts $\rightarrow$ crypto cash-out trails.
+
+### 2. 🤖 LangGraph Agentic Integration (With Bishal & Jayanta)
+* **Agentic Graph Tools:**
+  * Expose dedicated structured tools for the LangGraph agent (`lookup_suspect`, `expand_network`, `find_money_trail`, `get_shortest_connection`).
+* **Text-to-Cypher / Safe Cypher Engine:**
+  * Provide templated parameterized Cypher queries so the LLM agent avoids hallucinated or destructive graph operations.
+* **Sub-graph Serialization for Agent Context:**
+  * Return trimmed graph summaries that fit cleanly into LLM context windows for investigative report generation.
+
