@@ -1,8 +1,8 @@
 # 📊 Agent Specification: Risk Analyst Agent
 
-> **File Location:** [`backend/app/agents/nodes/risk_analyst.py`](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/nodes/risk_analyst.py)  
-> **Tool Boundary:** [`backend/app/agents/tools/risk_tools.py`](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/tools/risk_tools.py)  
-> **Analytics Engine:** [`backend/app/analytics/`](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/analytics/) (Arnish's Engine)  
+> **File Location:** [`backend/app/agents/nodes/risk_analyst.py`](../nodes/risk_analyst.py)  
+> **Tool Boundary:** [`backend/app/agents/tools/risk_tools.py`](../tools/risk_tools.py)  
+> **Analytics Engine:** [`backend/app/analytics/`](../../analytics/) (Arnish's Engine)  
 > **Role:** Mathematical Profiler, Centrality Specialist & Forensic Pattern Detective  
 > **Status:** Phase 3 Sprint Target (Tool contracts completed in Phase 1)
 
@@ -23,22 +23,22 @@ The **Risk Analyst Agent** acts as the computational behavioral profiler. Powere
 
 ```mermaid
 flowchart TD
-    Graph[(Network Graph G)] --> Engine[Arnish Graph Analytics Engine]
+    Graph[("Network Graph G")] --> Engine["Arnish Graph Analytics Engine"]
     
-    Engine --> PR[PageRank Algorithm<br/>Kingpin Identification]
-    Engine --> BC[Betweenness Centrality<br/>Communication Broker Detection]
-    Engine --> CD[Louvain / Modularity Clustering<br/>Gang & Syndicate Detection]
-    Engine --> CT[Cycle Detection Algorithm<br/>Money Laundering Loops A->B->C->A]
-    Engine --> CB[Temporal Spike Analysis<br/>Burner Phone Burst Detection]
+    Engine --> PR["PageRank Algorithm<br/>Kingpin Identification"]
+    Engine --> BC["Betweenness Centrality<br/>Communication Broker Detection"]
+    Engine --> CD["Louvain / Modularity Clustering<br/>Gang & Syndicate Detection"]
+    Engine --> CT["Cycle Detection Algorithm<br/>Money Laundering Loops (A to B to C to A)"]
+    Engine --> CB["Temporal Spike Analysis<br/>Burner Phone Burst Detection"]
     
-    PR --> Score[Comprehensive 0-100 Risk Score & Breakdown]
+    PR --> Score["Comprehensive 0-100 Risk Score & Breakdown"]
     BC --> Score
     CD --> Score
     CT --> Score
     CB --> Score
     
-    Score --> Tool[Risk Tools Boundary]
-    Tool --> Agent[Risk Analyst Agent]
+    Score --> Tool["Risk Tools Boundary"]
+    Tool --> Agent["Risk Analyst Agent"]
 ```
 
 ### The 6 Core Mathematical Sub-Scores
@@ -53,7 +53,7 @@ flowchart TD
 
 ## 🛠️ 3. Tool Binding Matrix
 
-Equipped with the 4 tools exported in [`RISK_TOOLS`](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/tools/risk_tools.py):
+Equipped with the 4 tools exported in [`RISK_TOOLS`](../tools/risk_tools.py):
 
 | Tool | Input Parameters | What It Evaluates |
 | :--- | :--- | :--- |
@@ -66,7 +66,7 @@ Equipped with the 4 tools exported in [`RISK_TOOLS`](file:///c:/Users/biswa/Desk
 
 ## 📥 4. State Interface: `risk_analysis`
 
-The Risk Analyst populates the `risk_analysis` dictionary inside [`InvestigationState`](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/state.py):
+The Risk Analyst populates the `risk_analysis` dictionary inside [`InvestigationState`](../state.py):
 
 ```python
 {
@@ -98,7 +98,7 @@ The Risk Analyst populates the `risk_analysis` dictionary inside [`Investigation
 
 ## 🛡️ 5. Resilient Fallback Architecture
 
-To ensure multi-agent tests and demos remain bulletproof even if live database containers are restarting, [risk_tools.py](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/tools/risk_tools.py) implements `safe_load_graph()`:
+To ensure multi-agent tests and demos remain bulletproof even if live database containers are restarting, [risk_tools.py](../tools/risk_tools.py) implements `safe_load_graph()`:
 - Attempts to query live Neo4j database first.
 - If unreachable, automatically falls back to Arnish's synthetic ground-truth graph (`ground_truth_case.json` / `mock_graph.py`).
 - Guarantees zero unhandled crashes during investigative inference.
