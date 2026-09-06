@@ -1,0 +1,16 @@
+{
+  "entities": [
+    {"id": "P001", "name": "Rahul Sharma", "type": "PERSON", "aliases": ["R. Sharma", "Rahul Pandit"], "source_doc": "FIR_102"},
+    {"id": "PH001", "name": "+919876543210", "type": "PHONE", "source_doc": "CDR_AUG_01"},
+    {"id": "LOC001", "name": "Old Delhi Warehouse", "type": "LOCATION", "latitude": 28.6562, "longitude": 77.2410, "source_doc": "FIR_102"},
+    {"id": "VEH001", "name": "DL01AB1234", "type": "VEHICLE", "vehicle_type": "Black Sedan", "source_doc": "FIR_102"},
+    {"id": "ORG001", "name": "Shadow Logistics Pvt Ltd", "type": "ORGANIZATION", "source_doc": "MCA_RECORDS"}
+  ],
+  "relationships": [
+    {"source": "P001", "target": "P002", "type": "CALLED", "confidence": 0.95, "source_doc": "CDR_AUG_01", "timestamp": "2026-08-20T14:32:00Z", "duration": 180, "evidence": "Suspect Rahul called Sameer for 3 minutes from Old Delhi."},
+    {"source": "P001", "target": "P003", "type": "TRANSACTED_WITH", "confidence": 0.92, "source_doc": "FIN_INTEL_88", "timestamp": "2026-08-21T09:15:00Z", "amount": 500000, "transaction_id": "TXN_99824", "evidence": "Wire transfer of 5 Lakhs from Rahul to Vikram."},
+    {"source": "P001", "target": "LOC001", "type": "PRESENT_AT", "confidence": 0.90, "source_doc": "FIR_102", "timestamp": "2026-08-21T18:00:00Z", "evidence": "Eyewitness spotted suspect at warehouse."},
+    {"source": "P004", "target": "VEH001", "type": "OWNS_VEHICLE", "confidence": 0.99, "source_doc": "RTO_RECORD", "timestamp": "2024-05-12T00:00:00Z", "evidence": "Registered owner in Delhi RTO records."},
+    {"source": "P003", "target": "ORG001", "type": "MEMBER_OF", "role": "Director", "confidence": 0.99, "source_doc": "MCA_RECORDS", "timestamp": "2021-01-10T00:00:00Z", "evidence": "Listed as active director on MCA portal."}
+  ]
+}
