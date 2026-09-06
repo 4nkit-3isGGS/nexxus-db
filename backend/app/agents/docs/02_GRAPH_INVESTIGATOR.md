@@ -1,7 +1,7 @@
 # 🕸️ Agent Specification: Graph Investigator Agent
 
-> **File Location:** [`backend/app/agents/nodes/graph_investigator.py`](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/nodes/graph_investigator.py)  
-> **Tool Boundary:** [`backend/app/agents/tools/graph_tools.py`](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/tools/graph_tools.py)  
+> **File Location:** [`backend/app/agents/nodes/graph_investigator.py`](../nodes/graph_investigator.py)  
+> **Tool Boundary:** [`backend/app/agents/tools/graph_tools.py`](../tools/graph_tools.py)  
 > **Role:** Neo4j Knowledge Graph Traversal & Topology Specialist  
 > **Status:** Phase 3 Sprint Target (Tool contracts completed in Phase 1)
 
@@ -22,23 +22,23 @@ The **Graph Investigator Agent** is the field explorer of the knowledge graph. W
 
 ## 🛠️ 2. Tool Binding Matrix
 
-The Graph Investigator is equipped exclusively with the 5 tools exported in [`GRAPH_TOOLS`](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/tools/graph_tools.py):
+The Graph Investigator is equipped exclusively with the 5 tools exported in [`GRAPH_TOOLS`](../tools/graph_tools.py):
 
 ```mermaid
 graph LR
-    Agent[Graph Investigator Agent] --> T1[get_entity]
-    Agent --> T2[get_neighbors]
-    Agent --> T3[get_subgraph]
-    Agent --> T4[get_shortest_path]
-    Agent --> T5[search_entities]
+    Agent["Graph Investigator Agent"] --> T1["get_entity"]
+    Agent --> T2["get_neighbors"]
+    Agent --> T3["get_subgraph"]
+    Agent --> T4["get_shortest_path"]
+    Agent --> T5["search_entities"]
 
-    T1 --> Service[Graph Query Service Layer]
+    T1 --> Service["Graph Query Service Layer"]
     T2 --> Service
     T3 --> Service
     T4 --> Service
     T5 --> Service
     
-    Service --> Neo4j[(Neo4j Knowledge Graph)]
+    Service --> Neo4j[("Neo4j Knowledge Graph")]
 ```
 
 | Tool | Parameters | Why It's Needed & Safeguards |
@@ -53,7 +53,7 @@ graph LR
 
 ## 📥 3. State Accumulation Contract
 
-When the Graph Investigator completes a step, it updates [`InvestigationState`](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/state.py):
+When the Graph Investigator completes a step, it updates [`InvestigationState`](../state.py):
 
 ```python
 # Discovered nodes are appended (deduplicated by id)
@@ -84,7 +84,7 @@ In graph theory, traversing multi-hop networks follows $O(b^d)$ expansion, where
 - Depth 3: $\sim 1,000$ nodes (dense criminal cell)
 - Depth 4+: $\ge 10,000$ nodes (database locks, context window blowout)
 
-Our tool boundary strictly enforces `bounded_depth = max(1, min(depth, 3))` in [graph_tools.py](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/tools/graph_tools.py) so no LLM prompt can inadvertently trigger an unconstrained graph traversal.
+Our tool boundary strictly enforces `bounded_depth = max(1, min(depth, 3))` in [graph_tools.py](../tools/graph_tools.py) so no LLM prompt can inadvertently trigger an unconstrained graph traversal.
 
 ---
 
