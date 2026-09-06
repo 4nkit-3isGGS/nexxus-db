@@ -16,7 +16,7 @@ Criminal networks do not operate as isolated records in a database. Modern syndi
 
 A monolithic LLM prompt fails on these problems due to **hallucinations**, **context window overflow**, and **lack of auditability**. The **Nexxus DB Multi-Agent Engine** solves this by deploying **LangGraph-driven specialized agents** acting as an autonomous digital police task force.
 
-Each agent has a strictly bounded role, a defined tool contract, and communicates via a shared blackboard case file: [`InvestigationState`](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/state.py).
+Each agent has a strictly bounded role, a defined tool contract, and communicates via a shared blackboard case file: [`InvestigationState`](../state.py).
 
 ---
 
@@ -24,33 +24,34 @@ Each agent has a strictly bounded role, a defined tool contract, and communicate
 
 ```mermaid
 flowchart TD
-    User([Investigating Officer / UI]) -->|Query: "Investigate Rahul's money trail"| Supervisor[Supervisor Agent<br/>Orchestrator & Strategic Planner]
+    Officer(["Investigating Officer / UI"]) -->|Investigative Query| Supervisor["Supervisor Agent<br/>Orchestrator & Strategic Planner"]
     
-    subgraph "Shared Case Blackboard (InvestigationState)"
-        State[(InvestigationState<br/>• Discoveries<br/>• Hypotheses<br/>• Evidence Items<br/>• Risk Profile)]
+    subgraph CaseBlackboard ["Shared Case Blackboard (InvestigationState)"]
+        State[("InvestigationState<br/>- Discovered Entities & Edges<br/>- Hypotheses Testing<br/>- Verified Evidence Items<br/>- Algorithmic Risk Profile")]
     end
 
     Supervisor -->|1. Generate Plan & Dispatch| State
     
-    State <-->|Query Subgraph & Neighbors| GraphAgent[Graph Investigator Agent<br/>Neo4j Topology Specialist]
-    State <-->|Compute Centrality & Loops| RiskAgent[Risk Analyst Agent<br/>Mathematical & Behavioral Profiler]
-    State <-->|Verify Hashes & BSA §65B| EvidenceAgent[Evidence Verifier Agent<br/>Legal & Forensic Auditor]
-    State <-->|Trace Mules & Crypto| FinAgent[Financial & Cyber Analyst Agent<br/>Mule & Wallet Specialist]
+    Supervisor -->|Delegate Graph Exploration| GraphAgent["Graph Investigator Agent<br/>Neo4j Topology Specialist"]
+    Supervisor -->|Delegate Profiling & Loops| RiskAgent["Risk Analyst Agent<br/>Mathematical & Behavioral Profiler"]
+    Supervisor -->|Delegate Hash Audit| EvidenceAgent["Evidence Verifier Agent<br/>Legal & Forensic Auditor"]
+    Supervisor -->|Delegate Mule & Wallet Trail| FinAgent["Financial & Cyber Analyst Agent<br/>Mule & Wallet Specialist"]
 
-    GraphAgent -->|Read / Traverse| GraphTools["Graph Tools (5)<br/>get_entity, get_neighbors, get_subgraph..."]
+    GraphAgent -->|Read / Traverse| GraphTools["Graph Tools (5)<br/>get_entity, get_subgraph..."]
     RiskAgent -->|Algorithmic Analytics| RiskTools["Risk Tools (4)<br/>get_risk_score, detect_anomalies..."]
     EvidenceAgent -->|SHA-256 Custody| EvidenceTools["Evidence Tools (3)<br/>get_evidence, verify_integrity..."]
 
-    GraphTools --> Neo4j[(Neo4j Knowledge Graph)]
-    RiskTools --> AnalyticsEngine[(Graph Analytics Engine)]
-    EvidenceTools --> Ledger[(BSA §65B Custody Store)]
+    GraphTools --> Neo4j[("Neo4j Knowledge Graph")]
+    RiskTools --> AnalyticsEngine[("Graph Analytics Engine")]
+    EvidenceTools --> Ledger[("BSA §65B Custody Store")]
 
-    GraphAgent -.->|Discovered Entities & Edges| Supervisor
-    RiskAgent -.->|Risk Breakdown & Anomalies| Supervisor
-    EvidenceAgent -.->|Admissibility Audit| Supervisor
-    FinAgent -.->|Financial Trails| Supervisor
+    GraphAgent -->|Accumulate Entities & Edges| State
+    RiskAgent -->|Accumulate Centrality & Scores| State
+    EvidenceAgent -->|Accumulate Validated Citations| State
+    FinAgent -->|Accumulate Laundering Chains| State
 
-    Supervisor -->|Synthesize Final Comprehensive Report| Output([Intelligence Briefing & Visual Graph])
+    State -.->|Read Verified Discoveries| Supervisor
+    Supervisor -->|Synthesize Final Dossier| Output(["Intelligence Briefing & Visual Graph"])
 ```
 
 ---
@@ -59,17 +60,17 @@ flowchart TD
 
 | # | Agent Name | Primary Responsibility | Key Tools | Detailed Spec Doc |
 | :-: | :--- | :--- | :--- | :--- |
-| **01** | **Supervisor Agent** | Deconstructs queries, extracts subjects, generates 3–5 step plans, dynamically delegates to workers, and compiles final briefs. | Dispatcher / Router | [01_SUPERVISOR_AGENT.md](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/docs/01_SUPERVISOR_AGENT.md) |
-| **02** | **Graph Investigator Agent** | Discovers hidden associates, multi-hop shell connections, burner phone ownership, and shortest paths. | `get_entity`, `get_neighbors`, `get_subgraph`, `get_shortest_path`, `search_entities` | [02_GRAPH_INVESTIGATOR.md](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/docs/02_GRAPH_INVESTIGATOR.md) |
-| **03** | **Risk Analyst Agent** | Profiles threat levels using PageRank (kingpins), Betweenness (brokers), circular transactions (money laundering), and call bursts. | `get_risk_score`, `get_network_centrality`, `get_communities`, `detect_anomalies` | [03_RISK_ANALYST.md](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/docs/03_RISK_ANALYST.md) |
-| **04** | **Evidence Verifier Agent** | Ensures court admissibility under Bharatiya Sakshya Adhiniyam (BSA) §65B, audits cryptographic SHA-256 hashes, and certifies tamper-free provenance. | `get_evidence`, `verify_evidence_integrity`, `generate_evidence_hash` | [04_EVIDENCE_VERIFIER.md](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/docs/04_EVIDENCE_VERIFIER.md) |
-| **05** | **Financial & Cyber Analyst Agent** | Traces shell accounts, high-frequency UPI/NEFT laundering, crypto-wallets (USDT/BTC), and correlates SIM boxes / IMEI fraud. | Financial sub-queries, cyber endpoints | [05_FINANCIAL_CRYPTO_ANALYST.md](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/docs/05_FINANCIAL_CRYPTO_ANALYST.md) |
+| **01** | **Supervisor Agent** | Deconstructs queries, extracts subjects, generates 3–5 step plans, dynamically delegates to workers, and compiles final briefs. | Dispatcher / Router | [01_SUPERVISOR_AGENT.md](./01_SUPERVISOR_AGENT.md) |
+| **02** | **Graph Investigator Agent** | Discovers hidden associates, multi-hop shell connections, burner phone ownership, and shortest paths. | `get_entity`, `get_neighbors`, `get_subgraph`, `get_shortest_path`, `search_entities` | [02_GRAPH_INVESTIGATOR.md](./02_GRAPH_INVESTIGATOR.md) |
+| **03** | **Risk Analyst Agent** | Profiles threat levels using PageRank (kingpins), Betweenness (brokers), circular transactions (money laundering), and call bursts. | `get_risk_score`, `get_network_centrality`, `get_communities`, `detect_anomalies` | [03_RISK_ANALYST.md](./03_RISK_ANALYST.md) |
+| **04** | **Evidence Verifier Agent** | Ensures court admissibility under Bharatiya Sakshya Adhiniyam (BSA) §65B, audits cryptographic SHA-256 hashes, and certifies tamper-free provenance. | `get_evidence`, `verify_evidence_integrity`, `generate_evidence_hash` | [04_EVIDENCE_VERIFIER.md](./04_EVIDENCE_VERIFIER.md) |
+| **05** | **Financial & Cyber Analyst Agent** | Traces shell accounts, high-frequency UPI/NEFT laundering, crypto-wallets (USDT/BTC), and correlates SIM boxes / IMEI fraud. | Financial sub-queries, cyber endpoints | [05_FINANCIAL_CRYPTO_ANALYST.md](./05_FINANCIAL_CRYPTO_ANALYST.md) |
 
 ---
 
 ## 🔄 4. The Shared Case Blackboard: `InvestigationState`
 
-Defined in [`backend/app/agents/state.py`](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/state.py):
+Defined in [`backend/app/agents/state.py`](../state.py):
 
 ```python
 class InvestigationState(TypedDict):
