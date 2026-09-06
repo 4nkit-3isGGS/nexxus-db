@@ -1,6 +1,6 @@
 # 🧭 Agent Specification: Supervisor Agent (Orchestrator & Planner)
 
-> **File Location:** [`backend/app/agents/nodes/supervisor.py`](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/nodes/supervisor.py)  
+> **File Location:** [`backend/app/agents/nodes/supervisor.py`](../nodes/supervisor.py)  
 > **Role:** Chief Intelligence Officer, Case Planner & Dispatcher  
 > **Status:** Phase 2 Sprint Target
 
@@ -25,32 +25,32 @@ The **Supervisor Agent** acts as the senior investigating superintendent. It doe
 
 ```mermaid
 flowchart TD
-    Start([User Query Received]) --> Init[Initialize InvestigationState]
-    Init --> SupervisorPlan[Supervisor: Plan Generation Node]
+    Start(["User Query Received"]) --> Init["Initialize InvestigationState"]
+    Init --> SupervisorPlan["Supervisor: Plan Generation Node"]
     
-    SupervisorPlan --> RouteDecision{Which agent is needed next?}
+    SupervisorPlan --> RouteDecision{"Which agent is needed next?"}
     
-    RouteDecision -->|Need Entity Profiles / Subgraphs| GraphAgent[Graph Investigator Node]
-    RouteDecision -->|Need Centrality / Anomaly Detection| RiskAgent[Risk Analyst Node]
-    RouteDecision -->|Need BSA 65B Audit / Hashes| EvidenceAgent[Evidence Verifier Node]
-    RouteDecision -->|Need Mule Accounts / Hawala Trails| FinAgent[Financial Analyst Node]
+    RouteDecision -->|Need Entity Profiles / Subgraphs| GraphAgent["Graph Investigator Node"]
+    RouteDecision -->|Need Centrality / Anomaly Detection| RiskAgent["Risk Analyst Node"]
+    RouteDecision -->|Need BSA 65B Audit / Hashes| EvidenceAgent["Evidence Verifier Node"]
+    RouteDecision -->|Need Mule Accounts / Hawala Trails| FinAgent["Financial Analyst Node"]
     
-    GraphAgent --> SupervisorEvaluate[Supervisor: Evaluation & Dispatch Node]
+    GraphAgent --> SupervisorEvaluate["Supervisor: Evaluation & Dispatch Node"]
     RiskAgent --> SupervisorEvaluate
     EvidenceAgent --> SupervisorEvaluate
     FinAgent --> SupervisorEvaluate
     
-    SupervisorEvaluate --> CheckDone{All hypotheses tested OR Max iterations reached?}
+    SupervisorEvaluate --> CheckDone{"All hypotheses tested OR Max iterations reached?"}
     CheckDone -->|No: Next Step Needed| RouteDecision
-    CheckDone -->|Yes: Synthesize Dossier| FinalReport[Supervisor: Final Briefing Node]
-    FinalReport --> End([Return Final Dossier & Graph to Officer])
+    CheckDone -->|Yes: Synthesize Dossier| FinalReport["Supervisor: Final Briefing Node"]
+    FinalReport --> EndNode(["Return Final Dossier & Graph to Officer"])
 ```
 
 ---
 
 ## 📥 3. State Interface & Schema Mutation
 
-The Supervisor Agent reads and updates the shared [`InvestigationState`](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/state.py):
+The Supervisor Agent reads and updates the shared [`InvestigationState`](../state.py):
 
 ### State Inputs:
 - `user_query`: The raw natural language investigation prompt.
