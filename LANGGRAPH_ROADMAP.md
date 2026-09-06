@@ -51,11 +51,11 @@
 
 ### 📅 Day 1: Foundations, State & Tool Boundary
 
-- [ ] **Phase 1: Tool Contracts & Service Boundary (Morning Day 1)**
-  - [ ] Define Python tool functions wrapping existing FastAPI graph services (`get_entity`, `get_neighbors`, `get_subgraph`, `get_shortest_path`, `search_entities`).
-  - [ ] Implement mock/stub for Arnish's Risk Analytics contract (`get_risk_score`, `get_centrality`, `get_communities`).
-  - [ ] Implement Evidence Verification tools (`get_evidence`, `verify_evidence_integrity`).
-  - [ ] Add tool unit tests verifying strict input validation and bounded query limits (e.g. depth $\le 3$).
+- [x] **Phase 1: Tool Contracts & Service Boundary (Morning Day 1)**
+  - [x] Define Python tool functions wrapping existing FastAPI graph services (`get_entity`, `get_neighbors`, `get_subgraph`, `get_shortest_path`, `search_entities`).
+  - [x] Implement mock/stub for Arnish's Risk Analytics contract (`get_risk_score`, `get_centrality`, `get_communities`).
+  - [x] Implement Evidence Verification tools (`get_evidence`, `verify_evidence_integrity`).
+  - [x] Add tool unit tests verifying strict input validation and bounded query limits (e.g. depth $\le 3$).
 
 - [ ] **Phase 2: Investigation State & Supervisor Core (Afternoon Day 1)**
   - [x] Define `InvestigationState` TypedDict with typed schemas (`Hypothesis`, `ToolInvocation`, `InvestigationState`, `initial_state()`).
