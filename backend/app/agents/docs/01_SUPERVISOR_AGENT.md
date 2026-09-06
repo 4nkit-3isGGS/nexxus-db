@@ -17,7 +17,7 @@ The **Supervisor Agent** acts as the senior investigating superintendent. It doe
 1. **Deconstructs the Officer's Query**: Extracts the subject entities, target crimes, and temporal parameters.
 2. **Formulates an Investigation Plan**: Breaks the case into a structured 3–5 step plan.
 3. **Dispatches Work**: Routes the case to specialized worker nodes (`graph_investigator`, `risk_analyst`, `evidence_verifier`, `financial_analyst`).
-4. **Evaluates Progress & Synthesizes**: Reads discoveries accumulated on the blackboard, verifies if hypotheses are resolved, and compiles the final intelligence dossier.
+4. **Evaluates Progress & Re-plans**: Reads discoveries accumulated on the blackboard, adjusts plans if the Critic/Verifier requests deeper evidence, and routes between stages until evidentiary sufficiency is met.
 
 ---
 
@@ -28,22 +28,25 @@ flowchart TD
     Start(["User Query Received"]) --> Init["Initialize InvestigationState"]
     Init --> SupervisorPlan["Supervisor: Plan Generation Node"]
     
-    SupervisorPlan --> RouteDecision{"Which agent is needed next?"}
+    SupervisorPlan --> RouteDecision{"Which worker is needed next?"}
     
     RouteDecision -->|Need Entity Profiles / Subgraphs| GraphAgent["Graph Investigator Node"]
     RouteDecision -->|Need Centrality / Anomaly Detection| RiskAgent["Risk Analyst Node"]
     RouteDecision -->|Need BSA 65B Audit / Hashes| EvidenceAgent["Evidence Verifier Node"]
     RouteDecision -->|Need Mule Accounts / Hawala Trails| FinAgent["Financial Analyst Node"]
     
-    GraphAgent --> SupervisorEvaluate["Supervisor: Evaluation & Dispatch Node"]
-    RiskAgent --> SupervisorEvaluate
-    EvidenceAgent --> SupervisorEvaluate
-    FinAgent --> SupervisorEvaluate
+    GraphAgent --> AnalysisNode["Analysis Agent Node (Hypothesis Engine)"]
+    RiskAgent --> AnalysisNode
+    EvidenceAgent --> AnalysisNode
+    FinAgent --> AnalysisNode
     
-    SupervisorEvaluate --> CheckDone{"All hypotheses tested OR Max iterations reached?"}
-    CheckDone -->|No: Next Step Needed| RouteDecision
-    CheckDone -->|Yes: Synthesize Dossier| FinalReport["Supervisor: Final Briefing Node"]
-    FinalReport --> EndNode(["Return Final Dossier & Graph to Officer"])
+    AnalysisNode --> CriticNode{"Critic / Verifier Node<br/>Is Evidence Sufficient & Verified?"}
+    
+    CriticNode -->|No: Weak / Budget Remains| SupervisorEvaluate["Supervisor: Re-plan & Evaluation Node"]
+    SupervisorEvaluate --> RouteDecision
+    
+    CriticNode -->|Yes: Sufficient OR Max Iterations| ReportNode["Report Agent Node"]
+    ReportNode --> EndNode(["Return Final Dossier & Graph to Officer"])
 ```
 
 ---

@@ -34,7 +34,7 @@ flowchart TD
     
     Supervisor -->|Delegate Graph Exploration| GraphAgent["Graph Investigator Agent<br/>Neo4j Topology Specialist"]
     Supervisor -->|Delegate Profiling & Loops| RiskAgent["Risk Analyst Agent<br/>Mathematical & Behavioral Profiler"]
-    Supervisor -->|Delegate Hash Audit| EvidenceAgent["Evidence Verifier Agent<br/>Legal & Forensic Auditor"]
+    Supervisor -->|Delegate Evidence Retrieval| EvidenceAgent["Evidence Verifier Agent<br/>Legal & Forensic Auditor"]
     Supervisor -->|Delegate Mule & Wallet Trail| FinAgent["Financial & Cyber Analyst Agent<br/>Mule & Wallet Specialist"]
 
     GraphAgent -->|Read / Traverse| GraphTools["Graph Tools (5)<br/>get_entity, get_subgraph..."]
@@ -50,21 +50,29 @@ flowchart TD
     EvidenceAgent -->|Accumulate Validated Citations| State
     FinAgent -->|Accumulate Laundering Chains| State
 
-    State -.->|Read Verified Discoveries| Supervisor
-    Supervisor -->|Synthesize Final Dossier| Output(["Intelligence Briefing & Visual Graph"])
+    State --> AnalysisAgent["Analysis Agent<br/>Hypothesis Correlation Engine"]
+    AnalysisAgent --> CriticAgent{"Critic / Verifier Agent<br/>Is Evidence Sufficient & Verified?"}
+
+    CriticAgent -->|NO: Weak Support / Iteration < Max| Supervisor
+    CriticAgent -->|YES: Validated & BSA Admissible| ReportAgent["Report Agent<br/>Intelligence Dossier Generator"]
+
+    ReportAgent --> Output(["Grounded Dossier & Graph API<br/>POST /api/investigate"])
 ```
 
 ---
 
 ## 📑 3. Agent Catalog & Documentation Index
 
-| # | Agent Name | Primary Responsibility | Key Tools | Detailed Spec Doc |
+| # | Agent Name | Primary Responsibility | Key Tools / Nodes | Detailed Spec Doc |
 | :-: | :--- | :--- | :--- | :--- |
-| **01** | **Supervisor Agent** | Deconstructs queries, extracts subjects, generates 3–5 step plans, dynamically delegates to workers, and compiles final briefs. | Dispatcher / Router | [01_SUPERVISOR_AGENT.md](./01_SUPERVISOR_AGENT.md) |
+| **01** | **Supervisor Agent** | Deconstructs queries, extracts subjects, generates 3–5 step plans, dynamically delegates to workers, and manages iteration guardrails. | Plan & Route Dispatcher | [01_SUPERVISOR_AGENT.md](./01_SUPERVISOR_AGENT.md) |
 | **02** | **Graph Investigator Agent** | Discovers hidden associates, multi-hop shell connections, burner phone ownership, and shortest paths. | `get_entity`, `get_neighbors`, `get_subgraph`, `get_shortest_path`, `search_entities` | [02_GRAPH_INVESTIGATOR.md](./02_GRAPH_INVESTIGATOR.md) |
 | **03** | **Risk Analyst Agent** | Profiles threat levels using PageRank (kingpins), Betweenness (brokers), circular transactions (money laundering), and call bursts. | `get_risk_score`, `get_network_centrality`, `get_communities`, `detect_anomalies` | [03_RISK_ANALYST.md](./03_RISK_ANALYST.md) |
 | **04** | **Evidence Verifier Agent** | Ensures court admissibility under Bharatiya Sakshya Adhiniyam (BSA) §65B, audits cryptographic SHA-256 hashes, and certifies tamper-free provenance. | `get_evidence`, `verify_evidence_integrity`, `generate_evidence_hash` | [04_EVIDENCE_VERIFIER.md](./04_EVIDENCE_VERIFIER.md) |
 | **05** | **Financial & Cyber Analyst Agent** | Traces shell accounts, high-frequency UPI/NEFT laundering, crypto-wallets (USDT/BTC), and correlates SIM boxes / IMEI fraud. | Financial sub-queries, cyber endpoints | [05_FINANCIAL_CRYPTO_ANALYST.md](./05_FINANCIAL_CRYPTO_ANALYST.md) |
+| **06** | **Analysis Agent** | Synthesizes and cross-correlates multi-source evidence (topology + risk + financial) to formulate and test structured hypotheses (`SUPPORTED`, `WEAK`, `REJECTED`). | Hypothesis Engine | [06_ANALYSIS_AGENT.md](./06_ANALYSIS_AGENT.md) |
+| **07** | **Critic / Verifier Agent** | Serves as independent forensic gatekeeper: checks for single-source bias, validates evidence confidence thresholds, verifies hash provenance, and triggers re-planning loop. | Quality & Loop Controller | [07_CRITIC_VERIFIER.md](./07_CRITIC_VERIFIER.md) |
+| **08** | **Report Agent** | Compiles grounded, court-admissible intelligence briefing with visual graph structures, timeline of crimes, and tactical recommendations for field officers. | Dossier Generator (`/api/investigate`) | [08_REPORT_AGENT.md](./08_REPORT_AGENT.md) |
 
 ---
 
