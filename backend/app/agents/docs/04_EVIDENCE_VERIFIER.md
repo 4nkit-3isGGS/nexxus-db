@@ -1,7 +1,7 @@
 # ⚖️ Agent Specification: Evidence Verifier Agent
 
-> **File Location:** [`backend/app/agents/nodes/evidence_verifier.py`](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/nodes/evidence_verifier.py)  
-> **Tool Boundary:** [`backend/app/agents/tools/evidence_tools.py`](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/tools/evidence_tools.py)  
+> **File Location:** [`backend/app/agents/nodes/evidence_verifier.py`](../nodes/evidence_verifier.py)  
+> **Tool Boundary:** [`backend/app/agents/tools/evidence_tools.py`](../tools/evidence_tools.py)  
 > **Legal Compliance:** Section 65B of Bharatiya Sakshya Adhiniyam (BSA), 2023  
 > **Role:** Forensic Auditor, Chain-of-Custody Officer & Legal Admissibility Certifier  
 > **Status:** Phase 3 Sprint Target (Tool contracts completed in Phase 1)
@@ -50,7 +50,7 @@ sequenceDiagram
 
 ## 🛠️ 3. Tool Binding Matrix
 
-Equipped with the 3 tools exported in [`EVIDENCE_TOOLS`](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/tools/evidence_tools.py):
+Equipped with the 3 tools exported in [`EVIDENCE_TOOLS`](../tools/evidence_tools.py):
 
 | Tool | Parameters | Function & Verification Standard |
 | :--- | :--- | :--- |
@@ -62,7 +62,7 @@ Equipped with the 3 tools exported in [`EVIDENCE_TOOLS`](file:///c:/Users/biswa/
 
 ## 📥 4. State Interface: Evidence & Verification Records
 
-Updates two critical collections in [`InvestigationState`](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/state.py):
+Updates two critical collections in [`InvestigationState`](../state.py):
 
 ### A. `evidence_items` (Documentary Proof)
 ```json
