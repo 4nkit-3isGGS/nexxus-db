@@ -1,6 +1,6 @@
 # 💰 Agent Specification: Financial & Cyber Forensics Agent
 
-> **File Location:** [`backend/app/agents/nodes/financial_analyst.py`](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/nodes/financial_analyst.py)  
+> **File Location:** [`backend/app/agents/nodes/financial_analyst.py`](../nodes/financial_analyst.py)  
 > **Specialization:** Mule Account Networks, Smurfing, Hawala Trails & Crypto Cash-Outs  
 > **Target Graph Labels:** `:CryptoWallet`, `:IPAddress`, `:IMEI`, `:Transaction`  
 > **Status:** Phase 3 Sprint Target
@@ -25,21 +25,21 @@ The **Financial & Cyber Forensics Agent** is the forensic accountant of the mult
 
 ```mermaid
 flowchart LR
-    Victim[Victim Bank Account] -->|Initial Fraud: ₹10,00,000| Mule1[Tier-1 Mule Account<br/>Fake KYC]
+    Victim["Victim Bank Account"] -->|Initial Fraud: ₹10,00,000| Mule1["Tier-1 Mule Account<br/>Fake KYC"]
     
-    Mule1 -->|₹3,00,000| Mule2A[Tier-2 Mule Account]
-    Mule1 -->|₹3,50,000| Mule2B[Tier-2 Mule Account]
-    Mule1 -->|₹3,50,000| Mule2C[Tier-2 Mule Account]
+    Mule1 -->|₹3,00,000| Mule2A["Tier-2 Mule Account"]
+    Mule1 -->|₹3,50,000| Mule2B["Tier-2 Mule Account"]
+    Mule1 -->|₹3,50,000| Mule2C["Tier-2 Mule Account"]
     
-    Mule2A -->|P2P Transfer| P2P[P2P Crypto Merchant]
+    Mule2A -->|P2P Transfer| P2P["P2P Crypto Merchant"]
     Mule2B -->|P2P Transfer| P2P
     Mule2C -->|P2P Transfer| P2P
     
-    P2P -->|USDT TRC-20| Wallet[Offshore Crypto Wallet<br/>:CryptoWallet Node]
+    P2P -->|USDT TRC-20| Wallet["Offshore Crypto Wallet<br/>:CryptoWallet Node"]
     
-    IP1[:IPAddress<br/>Common VPN / Cyber Cafe] -.->|Logged In| Mule1
+    IP1[":IPAddress<br/>Common VPN / Cyber Cafe"] -.->|Logged In| Mule1
     IP1 -.->|Logged In| Mule2A
-    IMEI[:IMEI Device<br/>SIM Box Operator] -.->|Used by| Ph1[:Phone]
+    IMEI[":IMEI Device<br/>SIM Box Operator"] -.->|Used by| Ph1[":Phone"]
 ```
 
 ---
@@ -49,7 +49,7 @@ flowchart LR
 ### A. Smurfing & Structuring Detection
 Detects multiple transactions placed just below mandatory regulatory reporting thresholds (e.g. repeated ₹49,500 transfers to evade ₹50,000 PAN tracking in India).
 
-### B. Circular Transaction Round-Tripping ($A \rightarrow B \rightarrow C \rightarrow A$)
+### B. Circular Transaction Round-Tripping (A to B to C to A)
 Invokes `detect_anomalies("circular_transactions")` from Arnish's engine to identify layering networks where money circulates through shell companies to create fictitious business turnover before returning to the kingpin.
 
 ### C. Cyber Footprint Correlation
@@ -60,7 +60,7 @@ Correlates `:IPAddress` and `:IMEI` nodes:
 
 ## 📥 4. State Interface Integration
 
-The Financial & Cyber Analyst writes directly to [`InvestigationState`](file:///c:/Users/biswa/Desktop/nexxus-db/backend/app/agents/state.py):
+The Financial & Cyber Analyst writes directly to [`InvestigationState`](../state.py):
 
 ```python
 {
