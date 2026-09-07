@@ -57,16 +57,17 @@
   - [x] Implement Evidence Verification tools (`get_evidence`, `verify_evidence_integrity`).
   - [x] Add tool unit tests verifying strict input validation and bounded query limits (e.g. depth $\le 3$).
 
-- [ ] **Phase 2: Investigation State & Supervisor Core (Afternoon Day 1)**
+- [x] **Phase 2: Investigation State & Supervisor Core (Afternoon Day 1)**
   - [x] Define `InvestigationState` TypedDict with typed schemas (`Hypothesis`, `ToolInvocation`, `InvestigationState`, `initial_state()`).
-  - [ ] Implement `Supervisor Agent` node with planning prompts (analyzes user query, resolves target person, generates 3-5 step plan).
-  - [ ] Implement agent routing logic / state transition dispatcher.
+  - [x] Implement `Supervisor Agent` node with planning prompts (analyzes user query, resolves target person, generates 3-5 step plan).
+  - [x] Implement agent routing logic / state transition dispatcher (`supervisor_evaluate_node`, `route_next_step`, `create_investigation_graph`).
 
-- [ ] **Phase 3: Specialized Worker Nodes (Evening Day 1)**
-  - [ ] Implement `Graph Investigator` agent node.
-  - [ ] Implement `Evidence Investigator` agent node.
-  - [ ] Implement `Risk Analyst` agent node.
-  - [ ] Verify state accumulation (entities, connections, and evidence stored in `InvestigationState`).
+- [x] **Phase 3: Specialized Worker Nodes (Evening Day 1)**
+  - [x] Implement `Graph Investigator` agent node.
+  - [x] Implement `Evidence Investigator` agent node.
+  - [x] Implement `Risk Analyst` agent node.
+  - [x] Implement `Financial & Cyber Analyst` agent node.
+  - [x] Verify state accumulation (entities, connections, and evidence stored in `InvestigationState`).
 
 ---
 
