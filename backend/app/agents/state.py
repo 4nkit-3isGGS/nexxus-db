@@ -36,6 +36,7 @@ class InvestigationState(TypedDict):
     hypotheses: List[Hypothesis]
     evidence_items: List[Dict[str, Any]]
     risk_analysis: Dict[str, Any]
+    financial_analysis: Dict[str, Any]
     verification_results: List[Dict[str, Any]]
     tool_history: List[ToolInvocation]
     iteration: int
@@ -53,6 +54,7 @@ def initial_state(user_query: str, subject_entity_id: Optional[str] = None) -> I
         "hypotheses": [],
         "evidence_items": [],
         "risk_analysis": {},
+        "financial_analysis": {},
         "verification_results": [],
         "tool_history": [],
         "iteration": 0,

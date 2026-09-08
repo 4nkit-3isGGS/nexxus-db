@@ -87,6 +87,7 @@ def financial_analyst_node(state: InvestigationState) -> Dict[str, Any]:
     })
 
     return {
+        "financial_analysis": financial_dossier,
         "iteration": cur_iter,
         "tool_history": new_history,
     }
