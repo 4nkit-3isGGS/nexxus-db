@@ -248,6 +248,12 @@ def supervisor_evaluate_node(state: InvestigationState) -> Dict[str, Any]:
         updated_hypotheses.append(hyp_copy)  # type: ignore
 
     # 2. Determine Next Stage based on missing case components
+    user_query = state.get("user_query", "").lower()
+    plan_text = " ".join(state.get("investigation_plan", [])).lower()
+    has_fin_intent = any(w in user_query or w in plan_text for w in ["money", "laundering", "mule", "transaction", "hawala", "financial", "crypto"])
+    has_circ_anomalies = any("circular" in str(a).lower() or "loop" in str(a).lower() for a in risk_analysis.get("anomalies", []))
+    has_run_fin = any(entry.get("tool_name") == "financial_analyst" for entry in state.get("tool_history", []))
+
     next_step: str
     if not discovered_entities and not discovered_relationships:
         # Step A: Graph topology exploration still needed
@@ -258,8 +264,11 @@ def supervisor_evaluate_node(state: InvestigationState) -> Dict[str, Any]:
     elif not evidence_items:
         # Step C: Legal evidence & BSA §65B hash verification needed
         next_step = "evidence_verifier"
+    elif (has_fin_intent or has_circ_anomalies) and not has_run_fin:
+        # Step D: Financial & Cyber Forensics needed for mule/laundering trails
+        next_step = "financial_analyst"
     else:
-        # Step D: All primary stages completed -> ready for final synthesis!
+        # Step E: All primary stages completed -> ready for final synthesis!
         next_step = "supervisor_report"
 
     new_history = list(state.get("tool_history", []))
@@ -382,10 +391,31 @@ def supervisor_report_node(state: InvestigationState) -> Dict[str, Any]:
     else:
         dossier.append("- *Synthetic graph run: No external FIR files attached.*")
 
-    # 4. Section: Tactical Recommendations
+    # 4. Section: Financial & Cyber Forensics (if executed)
+    fin_data = state.get("financial_analysis") or {}
+    if fin_data:
+        dossier.extend([
+            "",
+            "## 6. 💳 Financial Forensics & Crypto Off-Ramp Trail",
+            f"- **Tracked Laundering Volume:** `₹{fin_data.get('total_tracked_flow_inr', 0.0):,.2f}`",
+            f"- **Mule Accounts Flagged:** `{fin_data.get('flagged_mule_transactions', 0)}`",
+            f"- **Circular Round-Trips:** `{fin_data.get('circular_round_trips', 0)}`",
+            f"- **Smurfing / Structuring:** {', '.join(fin_data.get('smurfing_signatures', [])) if fin_data.get('smurfing_signatures') else 'None'}",
+        ])
+        crypto = fin_data.get("crypto_off_ramp", {})
+        if crypto:
+            dossier.append(f"- **Crypto Cash-Out Wallet:** `{crypto.get('wallet_protocol', 'Crypto')}` address `{crypto.get('flagged_address', 'N/A')}` via `{crypto.get('cash_out_exchange', 'Exchange')}`")
+        hardware = fin_data.get("hardware_correlation", {})
+        if hardware:
+            dossier.append(f"- **Correlated Cyber Hardware:** IMEI `{hardware.get('shared_imei_cluster', 'N/A')}` | Endpoints: `{', '.join(hardware.get('vpn_ip_endpoints', []))}`")
+        if fin_data.get("recommended_freeze_order"):
+            dossier.append(f"- **Asset Freeze Directive:** {fin_data['recommended_freeze_order']}")
+
+    # 5. Section: Tactical Recommendations
+    sec_num = "7" if fin_data else "6"
     dossier.extend([
         "",
-        "## 6. 🛡️ Tactical Law-Enforcement Next Steps",
+        f"## {sec_num}. 🛡️ Tactical Law-Enforcement Next Steps",
         f"1. **Freeze Assets:** Place stop-payment notices on financial conduits connected to `{subject_id}`.",
         f"2. **Telecommunications Subpoena:** Request real-time CDR and tower location logs for associated phone identifiers.",
         f"3. **Formal Charge Sheet Integration:** Attach this verified §65B cryptographic dossier to court annexures.",
@@ -473,7 +503,7 @@ def stub_graph_investigator_node(state: InvestigationState) -> Dict[str, Any]:
 
     new_history = list(state.get("tool_history", []))
     new_history.append({
-        "tool_name": "graph_investigator_stub",
+        "tool_name": "graph_investigator",
         "arguments": {"subject_id": subject_id},
         "summary_result": f"Discovered {len(entities)} entities and {len(relationships)} relationships.",
         "iteration": cur_iter,
@@ -506,7 +536,7 @@ def stub_risk_analyst_node(state: InvestigationState) -> Dict[str, Any]:
 
     new_history = list(state.get("tool_history", []))
     new_history.append({
-        "tool_name": "risk_analyst_stub",
+        "tool_name": "risk_analyst",
         "arguments": {"subject_id": subject_id},
         "summary_result": f"Assigned composite risk score 75/100 and flagged 2 anomalies.",
         "iteration": cur_iter,
@@ -536,7 +566,7 @@ def stub_evidence_verifier_node(state: InvestigationState) -> Dict[str, Any]:
 
     new_history = list(state.get("tool_history", []))
     new_history.append({
-        "tool_name": "evidence_verifier_stub",
+        "tool_name": "evidence_verifier",
         "arguments": {"subject_id": subject_id},
         "summary_result": "Verified FIR-102/2026 under BSA §65B with valid SHA-256 hash.",
         "iteration": cur_iter,
@@ -556,13 +586,18 @@ def stub_financial_analyst_node(state: InvestigationState) -> Dict[str, Any]:
 
     new_history = list(state.get("tool_history", []))
     new_history.append({
-        "tool_name": "financial_analyst_stub",
+        "tool_name": "financial_analyst",
         "arguments": {"subject_id": subject_id},
         "summary_result": "No direct cryptocurrency addresses linked; 1 mule bank account flagged.",
         "iteration": cur_iter,
     })
 
     return {
+        "financial_analysis": {
+            "flagged_mule_transactions": 1,
+            "total_tracked_flow_inr": 49500.0,
+            "circular_round_trips": 1,
+        },
         "iteration": cur_iter,
         "tool_history": new_history,
     }
