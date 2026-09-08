@@ -143,6 +143,8 @@ class TestFinancialAnalystNode:
         result = financial_analyst_node(state)
 
         assert result["iteration"] == 1
+        assert "financial_analysis" in result
+        assert result["financial_analysis"]["flagged_mule_transactions"] == 1
         assert len(result["tool_history"]) == 1
         audit = result["tool_history"][0]
         assert audit["tool_name"] == "financial_analyst"
@@ -198,6 +200,7 @@ class TestProductionInvestigationPipeline:
         assert "graph_investigator" in worker_names
         assert "risk_analyst" in worker_names
         assert "evidence_verifier" in worker_names
+        assert "financial_analyst" in worker_names
         assert "supervisor_evaluate" in worker_names
         assert "supervisor_report" in worker_names
 
