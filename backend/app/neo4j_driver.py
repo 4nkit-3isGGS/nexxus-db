@@ -29,7 +29,12 @@ class Neo4jConnection:
 
     def connect(self) -> Driver:
         if self.driver is None:
-            self.driver = GraphDatabase.driver(self.url, auth=(self.user, self.password))
+            conn_timeout = float(os.getenv("NEO4J_CONNECTION_TIMEOUT", "2.0"))
+            self.driver = GraphDatabase.driver(
+                self.url,
+                auth=(self.user, self.password),
+                connection_timeout=conn_timeout,
+            )
         return self.driver
 
     def close(self):
