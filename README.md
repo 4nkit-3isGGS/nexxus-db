@@ -19,7 +19,7 @@ Law enforcement agencies frequently collect fragmented data across First Informa
 
 ## 🏗️ 2. End-to-End Pipeline & Team Roles
 
-$$\text{Abhidha (NLP)} \longrightarrow \text{Ankit (Neo4j + Ingestion + Resolution)} \longrightarrow \text{Arnish (Risk/Analytics)} \longrightarrow \text{Bishal \& Jayanta (LangGraph/UI)}$$
+> **Abhidha (NLP)** ➔ **Ankit (Neo4j + Ingestion + Resolution)** ➔ **Arnish (Risk/Analytics)** ➔ **Bishal & Jayanta (LangGraph/UI)**
 
 ```
 ┌──────────────────────────────┐       ┌─────────────────────────────────────────────────┐
@@ -49,22 +49,22 @@ $$\text{Abhidha (NLP)} \longrightarrow \text{Ankit (Neo4j + Ingestion + Resoluti
 - **Organization Matching**: Corporate suffix normalization (`Pvt Ltd`, `LLC`, `Corp`) with fuzzy title matching.
 - **Vehicle Fraud & Cloned Plate Detection**: Automatically flags cloned license plate fraud when identical registration numbers appear with conflicting make/model/color attributes.
 - **Automated Thresholds**:
-  - `AUTO_MERGE` ($\ge 0.85$ confidence): Automatically consolidated.
-  - `REVIEW_QUEUE` ($0.60 \le \text{Score} < 0.85$): Flagged with `:POSSIBLE_DUPLICATE` for manual investigator review (`GET /api/entities/review-queue`, `POST /api/entities/merge`).
-  - `CREATE_NEW` ($< 0.60$): Ingested as distinct individual.
+  - `AUTO_MERGE` (Score ≥ 0.85): Automatically consolidated.
+  - `REVIEW_QUEUE` (0.60 ≤ Score < 0.85): Flagged with `:POSSIBLE_DUPLICATE` for manual investigator review (`GET /api/entities/review-queue`, `POST /api/entities/merge`).
+  - `CREATE_NEW` (Score < 0.60): Ingested as distinct individual.
 
 ### 📊 B. Integrated Graph Analytics Engine (`backend/app/analytics/`)
 - **Centrality Metrics**: Computes **PageRank** (identifying influential kingpins) and **Betweenness Centrality** (identifying communication brokers/bridges connecting criminal cells).
 - **Syndicate Community Detection**: Uses Louvain modularity to cluster suspects into operational gangs.
 - **Forensic Anomaly Detection**:
-  - *Circular Transactions*: Detects round-tripping money laundering loops ($A \rightarrow B \rightarrow C \rightarrow A$).
-  - *Call Bursts*: Flags burner SIM activity ($\ge 10$ calls/day around incident dates).
+  - *Circular Transactions*: Detects round-tripping money laundering loops (`A → B → C → A`).
+  - *Call Bursts*: Flags burner SIM activity (≥ 10 calls/day around incident dates).
   - *Cross-Case Entities*: Detects repeat offenders appearing across multiple separate FIRs.
 
 ### 🤖 C. LangGraph Multi-Agent Investigation Engine (`backend/app/agents/`)
 - **Shared Case Blackboard**: Centralized [`InvestigationState`](backend/app/agents/state.py) tracking discoveries, working hypotheses, evidence citations, and tool history.
 - **12 Production Tool Boundaries** (`backend/app/agents/tools/`):
-  - **Graph Tools (5)**: `get_entity`, `get_neighbors`, `get_subgraph` (strictly bounded depth $\le 3$), `get_shortest_path`, `search_entities`.
+  - **Graph Tools (5)**: `get_entity`, `get_neighbors`, `get_subgraph` (strictly bounded depth ≤ 3), `get_shortest_path`, `search_entities`.
   - **Risk Tools (4)**: `get_risk_score`, `get_network_centrality`, `get_communities`, `detect_anomalies`.
   - **Evidence Tools (3)**: `get_evidence`, `verify_evidence_integrity`, `generate_evidence_hash`.
 - **BSA §65B Cryptographic Evidence Custody**: Computes and audits SHA-256 cryptographic hashes for every evidence excerpt to guarantee legal admissibility in Indian courts under **Section 65B of the Bharatiya Sakshya Adhiniyam, 2023**.
@@ -115,7 +115,7 @@ nexxus-db/
 │   │       │   └── __init__.py       # Exported tool registries
 │   │       ├── nodes/                # Agent nodes (Supervisor, Investigator, Analyst)
 │   │       └── docs/                 # Detailed 6-agent technical manuals
-│   ├── tests/                        # 74 unit & integration tests
+│   ├── tests/                        # 98 unit & integration tests
 │   │   ├── test_agent_tools.py       # Full tool boundary & BSA 65B tests (27 tests)
 │   │   ├── test_matcher.py           # RapidFuzz similarity tests
 │   │   ├── test_normalizer.py        # Text & phone standardization tests
@@ -173,7 +173,7 @@ Execute the comprehensive test suite:
 ```powershell
 pytest backend/tests -v
 ```
-*(Currently: **74 passing unit tests**, with 12 live Neo4j tests safely skipped when the database container is offline).*
+*(Currently: **98 passing unit tests**, with 12 live Neo4j tests safely skipped when the database container is offline).*
 
 ---
 
