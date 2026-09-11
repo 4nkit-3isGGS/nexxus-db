@@ -7,12 +7,13 @@ Responsibilities:
 1. Deconstructs officer query and disambiguates the primary subject entity.
 2. Formulates a structured 3-5 step investigative plan and initializes hypotheses.
 3. Dynamically evaluates incoming discoveries and routes between specialized workers.
-4. Enforces the strict loop guardrail (MAX_ITERATIONS = 10).
+4. Enforces the strict loop guardrail (MAX_ITERATIONS = 5).
 5. Compiles grounded criminal intelligence dossiers with BSA §65B hash certificates.
 """
 
 import re
 from typing import Dict, Any, List, Optional, Tuple, Literal
+# pyrefly: ignore [missing-import]
 from langgraph.graph import StateGraph, START, END
 
 from backend.app.agents.state import (
@@ -24,7 +25,7 @@ from backend.app.agents.state import (
 from backend.app.agents.tools.graph_tools import search_entities_tool, get_entity_tool
 
 # Non-negotiable system guardrail: hard ceiling on investigation cycles
-MAX_ITERATIONS: int = 10
+MAX_ITERATIONS: int = 5
 
 
 # =========================================================================
@@ -117,6 +118,33 @@ def supervisor_plan_node(state: InvestigationState) -> Dict[str, Any]:
     has_fin_focus = any(w in q_lower for w in ["money", "laundering", "mule", "transaction", "hawala", "financial", "crypto"])
     has_vehicle_focus = any(w in q_lower for w in ["vehicle", "car", "plate", "cloned", "bike"])
 
+    # If re-planning cycle triggered by Critic / Verifier, preserve progress and append critique adjustments
+    existing_plan = state.get("investigation_plan", [])
+    existing_hypotheses = state.get("hypotheses", [])
+    if existing_plan and current_iter > 1:
+        plan = list(existing_plan)
+        hypotheses = list(existing_hypotheses)
+        verification_results = state.get("verification_results", [])
+        critique = verification_results[-1].get("critique", "") if verification_results else ""
+        plan.append(f"Re-plan: Address Quality Gatekeeper feedback - {critique[:60]}...")
+
+        next_worker = "evidence_verifier" if ("evidence" in critique.lower() or "provenance" in critique.lower()) else "graph_investigator"
+        new_history = list(state.get("tool_history", []))
+        new_history.append({
+            "tool_name": "supervisor_plan",
+            "arguments": {"replan": True, "critique": critique[:80]},
+            "summary_result": f"Re-planned based on Critic feedback. Next dispatch: {next_worker}.",
+            "iteration": current_iter,
+        })
+        return {
+            "subject_entity_id": subject_id,
+            "investigation_plan": plan,
+            "hypotheses": hypotheses,
+            "current_step": next_worker,
+            "iteration": current_iter,
+            "tool_history": new_history,
+        }
+
     # 3. Formulate 3-5 step investigation plan
     plan: List[str] = [
         f"Step 1: Map 2-hop criminal network perimeter around {target_name} ({subject_id}) using Graph Investigator.",
@@ -192,7 +220,7 @@ def supervisor_plan_node(state: InvestigationState) -> Dict[str, Any]:
 
 def supervisor_evaluate_node(state: InvestigationState) -> Dict[str, Any]:
     """Reviews accumulated worker discoveries, updates hypothesis confidence,
-    enforces loop limits (MAX_ITERATIONS = 10), and decides next worker or report stage.
+    enforces loop limits (MAX_ITERATIONS = 5), and decides next worker or report stage.
     
     Mutates:
         - hypotheses
@@ -208,7 +236,7 @@ def supervisor_evaluate_node(state: InvestigationState) -> Dict[str, Any]:
     hypotheses = list(state.get("hypotheses", []))
 
     # Guardrail Check 1: Exceeded maximum iterations
-    if current_iter >= MAX_ITERATIONS:
+    if current_iter > MAX_ITERATIONS:
         new_history = list(state.get("tool_history", []))
         new_history.append({
             "tool_name": "supervisor_evaluate",
@@ -218,6 +246,7 @@ def supervisor_evaluate_node(state: InvestigationState) -> Dict[str, Any]:
         })
         return {
             "current_step": "supervisor_report",
+            "hypotheses": hypotheses,
             "iteration": current_iter,
             "tool_history": new_history,
         }
@@ -268,8 +297,12 @@ def supervisor_evaluate_node(state: InvestigationState) -> Dict[str, Any]:
         # Step D: Financial & Cyber Forensics needed for mule/laundering trails
         next_step = "financial_analyst"
     else:
-        # Step E: All primary stages completed -> ready for final synthesis!
-        next_step = "supervisor_report"
+        # Step E: All primary stages completed -> check if full pipeline (Analysis -> Critic) is active
+        has_run_analysis = any(entry.get("tool_name") == "analysis_agent" for entry in state.get("tool_history", []))
+        if state.get("full_pipeline", False) and not has_run_analysis:
+            next_step = "analysis_agent"
+        else:
+            next_step = "supervisor_report"
 
     new_history = list(state.get("tool_history", []))
     new_history.append({
@@ -299,146 +332,10 @@ def supervisor_evaluate_node(state: InvestigationState) -> Dict[str, Any]:
 def supervisor_report_node(state: InvestigationState) -> Dict[str, Any]:
     """Compiles a grounded, court-admissible criminal intelligence dossier
     with timeline, topology metrics, risk assessment, and BSA §65B hash audit.
-    
-    Mutates:
-        - final_answer
-        - current_step
-        - iteration
-        - tool_history
+    Delegates to report_agent_node.
     """
-    current_iter = state.get("iteration", 0) + 1
-    subject_id = state.get("subject_entity_id") or "UNKNOWN_SUBJECT"
-    user_query = state.get("user_query", "")
-    entities = state.get("discovered_entities", [])
-    relationships = state.get("discovered_relationships", [])
-    risk = state.get("risk_analysis", {})
-    hypotheses = state.get("hypotheses", [])
-    evidence = state.get("evidence_items", [])
-    verification = state.get("verification_results", [])
-
-    # Extract primary subject details if available
-    subject_node = next((e for e in entities if e.get("id") == subject_id), {})
-    subject_name = subject_node.get("name") or subject_node.get("id") or subject_id
-    risk_score = risk.get("risk_score", subject_node.get("risk_score", 0))
-    centrality = risk.get("centrality", {})
-
-    aliases = subject_node.get("aliases")
-    alias_str = f" (Aliases: {aliases})" if aliases else ""
-
-    # 1. Section: Header & Executive Summary
-    dossier: List[str] = [
-        f"# 🚨 CRIMINAL NETWORK INTELLIGENCE DOSSIER",
-        f"**Case Reference:** NX-INV-{subject_id}-2026",
-        f"**Target Subject:** {subject_name} (`{subject_id}`)",
-        f"**Overall Threat Assessment:** {'HIGH CRITICAL' if risk_score >= 70 else 'MODERATE' if risk_score >= 40 else 'LOW/MONITORING'} (Risk Score: {risk_score}/100)",
-        f"**Investigative Query:** *\"{user_query}\"*",
-        "",
-        "---",
-        "",
-        "## 1. 👤 Target Subject Profile",
-        f"- **Primary Identifier:** `{subject_id}`",
-        f"- **Name / Aliases:** {subject_name}{alias_str}",
-        f"- **Aadhaar / PAN:** {subject_node.get('aadhaar', 'UNSPECIFIED')} / {subject_node.get('pan', 'UNSPECIFIED')}",
-        f"- **Father's Name:** {subject_node.get('father_name', 'Not Listed')}",
-        f"- **Gender / Age:** {subject_node.get('gender', 'N/A')} / {subject_node.get('age', 'N/A')}",
-        "",
-        "## 2. 🕸️ Discovered Network & Asset Perimeter",
-        f"The autonomous investigation mapped **{len(entities)} connected entities** and **{len(relationships)} direct relationships**:",
-    ]
-
-    # Itemize discovered nodes
-    if entities:
-        for idx, ent in enumerate(entities[:8], 1):
-            ent_type = ent.get("label") or ent.get("type") or "Entity"
-            ent_name = ent.get("name") or ent.get("number") or ent.get("registration_number") or ent.get("id")
-            dossier.append(f"  {idx}. `[{ent_type}]` **{ent_name}** (`{ent.get('id', 'N/A')}`)")
-    else:
-        dossier.append("  - No secondary network nodes discovered.")
-
-    # 2. Section: Algorithmic Threat & Centrality
-    dossier.extend([
-        "",
-        "## 3. 📊 Algorithmic Threat & Role Profiling",
-        f"- **Composite Risk Score:** `{risk_score}/100`",
-        f"- **Network Role:** {'Kingpin / Central Hub' if centrality.get('degree', 0) > 3 or centrality.get('pagerank', 0) > 0.3 else 'Operational Cut-Out / Broker'}",
-        f"- **PageRank Centrality:** `{centrality.get('pagerank', 0.0):.4f}`",
-        f"- **Betweenness Centrality:** `{centrality.get('betweenness', 0.0):.4f}`",
-        f"- **Detected Anomalies:** {', '.join(risk.get('anomalies', [])) if risk.get('anomalies') else 'None flagged'}",
-        "",
-        "## 4. 🔬 Working Hypotheses & Evidentiary Findings",
-    ])
-
-    for hyp in hypotheses:
-        status_emoji = "✅" if hyp["status"] == "SUPPORTED" else "⚠️" if hyp["status"] == "WEAK" else "❌"
-        dossier.append(f"### {status_emoji} Hypothesis {hyp['id']}: {hyp['status']}")
-        dossier.append(f"**Claim:** {hyp['claim']}")
-        dossier.append(f"**Rationale:** {hyp['rationale']}")
-        if hyp.get("supported_evidence_id"):
-            dossier.append(f"**Supporting Evidence IDs:** `{', '.join(hyp['supported_evidence_id'])}`")
-        dossier.append("")
-
-    # 3. Section: BSA §65B Legal Admissibility Manifest
-    dossier.extend([
-        "## 5. ⚖️ Section 65B Bharatiya Sakshya Adhiniyam (BSA) Evidence Chain",
-        "All documentary evidence citations have been audited for court admissibility with SHA-256 cryptographic provenance:",
-    ])
-
-    if evidence:
-        for ev in evidence[:5]:
-            doc_id = ev.get("doc_id") or ev.get("id") or "FIR-DOC"
-            sha = ev.get("evidence_hash") or ev.get("sha256") or "e50fd6c89283fbc3d4924823485723948572093845"
-            dossier.append(f"- **Document:** `{doc_id}` | **BSA §65B Certified:** `TRUE` | **SHA-256:** `{sha[:16]}...`")
-    else:
-        dossier.append("- *Synthetic graph run: No external FIR files attached.*")
-
-    # 4. Section: Financial & Cyber Forensics (if executed)
-    fin_data = state.get("financial_analysis") or {}
-    if fin_data:
-        dossier.extend([
-            "",
-            "## 6. 💳 Financial Forensics & Crypto Off-Ramp Trail",
-            f"- **Tracked Laundering Volume:** `₹{fin_data.get('total_tracked_flow_inr', 0.0):,.2f}`",
-            f"- **Mule Accounts Flagged:** `{fin_data.get('flagged_mule_transactions', 0)}`",
-            f"- **Circular Round-Trips:** `{fin_data.get('circular_round_trips', 0)}`",
-            f"- **Smurfing / Structuring:** {', '.join(fin_data.get('smurfing_signatures', [])) if fin_data.get('smurfing_signatures') else 'None'}",
-        ])
-        crypto = fin_data.get("crypto_off_ramp", {})
-        if crypto:
-            dossier.append(f"- **Crypto Cash-Out Wallet:** `{crypto.get('wallet_protocol', 'Crypto')}` address `{crypto.get('flagged_address', 'N/A')}` via `{crypto.get('cash_out_exchange', 'Exchange')}`")
-        hardware = fin_data.get("hardware_correlation", {})
-        if hardware:
-            dossier.append(f"- **Correlated Cyber Hardware:** IMEI `{hardware.get('shared_imei_cluster', 'N/A')}` | Endpoints: `{', '.join(hardware.get('vpn_ip_endpoints', []))}`")
-        if fin_data.get("recommended_freeze_order"):
-            dossier.append(f"- **Asset Freeze Directive:** {fin_data['recommended_freeze_order']}")
-
-    # 5. Section: Tactical Recommendations
-    sec_num = "7" if fin_data else "6"
-    dossier.extend([
-        "",
-        f"## {sec_num}. 🛡️ Tactical Law-Enforcement Next Steps",
-        f"1. **Freeze Assets:** Place stop-payment notices on financial conduits connected to `{subject_id}`.",
-        f"2. **Telecommunications Subpoena:** Request real-time CDR and tower location logs for associated phone identifiers.",
-        f"3. **Formal Charge Sheet Integration:** Attach this verified §65B cryptographic dossier to court annexures.",
-        "",
-        f"*Dossier generated autonomously by Nexxus DB Multi-Agent Task Force on {state.get('iteration', 1)} iterations.*",
-    ])
-
-    final_text = "\n".join(dossier)
-
-    new_history = list(state.get("tool_history", []))
-    new_history.append({
-        "tool_name": "supervisor_report",
-        "arguments": {"subject_id": subject_id},
-        "summary_result": f"Generated final grounded dossier ({len(final_text)} characters). Status: COMPLETED.",
-        "iteration": current_iter,
-    })
-
-    return {
-        "final_answer": final_text,
-        "current_step": "COMPLETED",
-        "iteration": current_iter,
-        "tool_history": new_history,
-    }
+    from backend.app.agents.nodes.report_agent import report_agent_node
+    return report_agent_node(state)
 
 
 # =========================================================================
@@ -461,6 +358,9 @@ def route_next_step(state: InvestigationState) -> str:
         "risk_analyst",
         "evidence_verifier",
         "financial_analyst",
+        "analysis_agent",
+        "critic_verifier",
+        "supervisor_plan",
         "supervisor_evaluate",
         "supervisor_report",
     }
@@ -481,7 +381,7 @@ def stub_graph_investigator_node(state: InvestigationState) -> Dict[str, Any]:
     Queries 1-2 hop neighbors of subject using get_entity and get_neighbors tools.
     """
     subject_id = state.get("subject_entity_id") or "P001"
-    cur_iter = state.get("iteration", 0) + 1
+    cur_iter = state.get("iteration", 0) or 1
     
     entities: List[Dict[str, Any]] = list(state.get("discovered_entities", []))
     relationships: List[Dict[str, Any]] = list(state.get("discovered_relationships", []))
@@ -520,7 +420,7 @@ def stub_graph_investigator_node(state: InvestigationState) -> Dict[str, Any]:
 def stub_risk_analyst_node(state: InvestigationState) -> Dict[str, Any]:
     """Stub node for Risk Analyst worker during Phase 2."""
     subject_id = state.get("subject_entity_id") or "P001"
-    cur_iter = state.get("iteration", 0) + 1
+    cur_iter = state.get("iteration", 0) or 1
 
     risk_data = {
         "subject_id": subject_id,
@@ -552,7 +452,7 @@ def stub_risk_analyst_node(state: InvestigationState) -> Dict[str, Any]:
 def stub_evidence_verifier_node(state: InvestigationState) -> Dict[str, Any]:
     """Stub node for Evidence Verifier worker during Phase 2."""
     subject_id = state.get("subject_entity_id") or "P001"
-    cur_iter = state.get("iteration", 0) + 1
+    cur_iter = state.get("iteration", 0) or 1
 
     evidence_items = [
         {
@@ -582,7 +482,7 @@ def stub_evidence_verifier_node(state: InvestigationState) -> Dict[str, Any]:
 def stub_financial_analyst_node(state: InvestigationState) -> Dict[str, Any]:
     """Stub node for Financial Analyst worker during Phase 2."""
     subject_id = state.get("subject_entity_id") or "P001"
-    cur_iter = state.get("iteration", 0) + 1
+    cur_iter = state.get("iteration", 0) or 1
 
     new_history = list(state.get("tool_history", []))
     new_history.append({
@@ -607,16 +507,13 @@ def stub_financial_analyst_node(state: InvestigationState) -> Dict[str, Any]:
 # 7. Workflow Graph Factory: create_investigation_graph
 # =========================================================================
 
-def create_investigation_graph(worker_stubs: bool = False):
-    """Builds and compiles the full LangGraph investigation StateGraph.
+def create_investigation_graph(worker_stubs: bool = False, full_pipeline: bool = False):
+    """Builds and compiles the LangGraph investigation StateGraph.
     
-    If worker_stubs=False (default), binds production worker agent implementations:
-    - graph_investigator_node
-    - risk_analyst_node
-    - evidence_verifier_node
-    - financial_analyst_node
-    
+    If worker_stubs=False (default), binds production worker agent implementations.
     If worker_stubs=True, binds isolated stubs for fast unit test isolation.
+    If full_pipeline=True, wires the complete intelligence cycle:
+        supervisor_plan -> workers -> supervisor_evaluate -> analysis_agent -> critic_verifier -> supervisor_report.
     """
     workflow = StateGraph(InvestigationState)
 
@@ -642,24 +539,31 @@ def create_investigation_graph(worker_stubs: bool = False):
         workflow.add_node("evidence_verifier", evidence_verifier_node)
         workflow.add_node("financial_analyst", financial_analyst_node)
 
-    # 3. Add Edges & Transitions
-    # Start -> Planning Node
+    # 3. Add Analysis & Critic Nodes if full_pipeline is True
+    if full_pipeline:
+        from backend.app.agents.nodes.analysis_agent import analysis_agent_node
+        from backend.app.agents.nodes.critic_verifier import critic_verifier_node, route_critic_decision
+
+        workflow.add_node("analysis_agent", analysis_agent_node)
+        workflow.add_node("critic_verifier", critic_verifier_node)
+
+    # 4. Add Edges & Transitions
     workflow.add_edge(START, "supervisor_plan")
 
-    # Supervisor Plan -> Route (usually to graph_investigator)
-    workflow.add_conditional_edges(
-        "supervisor_plan",
-        route_next_step,
-        {
-            "graph_investigator": "graph_investigator",
-            "risk_analyst": "risk_analyst",
-            "evidence_verifier": "evidence_verifier",
-            "financial_analyst": "financial_analyst",
-            "supervisor_evaluate": "supervisor_evaluate",
-            "supervisor_report": "supervisor_report",
-            END: END,
-        }
-    )
+    plan_edges = {
+        "graph_investigator": "graph_investigator",
+        "risk_analyst": "risk_analyst",
+        "evidence_verifier": "evidence_verifier",
+        "financial_analyst": "financial_analyst",
+        "supervisor_evaluate": "supervisor_evaluate",
+        "supervisor_report": "supervisor_report",
+        END: END,
+    }
+    if full_pipeline:
+        plan_edges["analysis_agent"] = "analysis_agent"
+        plan_edges["critic_verifier"] = "critic_verifier"
+
+    workflow.add_conditional_edges("supervisor_plan", route_next_step, plan_edges)
 
     # All Workers route into Supervisor Evaluate
     workflow.add_edge("graph_investigator", "supervisor_evaluate")
@@ -667,21 +571,43 @@ def create_investigation_graph(worker_stubs: bool = False):
     workflow.add_edge("evidence_verifier", "supervisor_evaluate")
     workflow.add_edge("financial_analyst", "supervisor_evaluate")
 
-    # Supervisor Evaluate -> Route (Next Worker, or Report)
-    workflow.add_conditional_edges(
-        "supervisor_evaluate",
-        route_next_step,
-        {
-            "graph_investigator": "graph_investigator",
-            "risk_analyst": "risk_analyst",
-            "evidence_verifier": "evidence_verifier",
-            "financial_analyst": "financial_analyst",
-            "supervisor_report": "supervisor_report",
-            END: END,
-        }
-    )
+    eval_edges = {
+        "graph_investigator": "graph_investigator",
+        "risk_analyst": "risk_analyst",
+        "evidence_verifier": "evidence_verifier",
+        "financial_analyst": "financial_analyst",
+        "supervisor_report": "supervisor_report",
+        END: END,
+    }
+    if full_pipeline:
+        eval_edges["analysis_agent"] = "analysis_agent"
+        eval_edges["critic_verifier"] = "critic_verifier"
+
+    workflow.add_conditional_edges("supervisor_evaluate", route_next_step, eval_edges)
+
+    if full_pipeline:
+        # analysis_agent routes directly to critic_verifier
+        workflow.add_edge("analysis_agent", "critic_verifier")
+
+        # critic_verifier conditionally routes to supervisor_plan (re-plan loop) or supervisor_report
+        workflow.add_conditional_edges(
+            "critic_verifier",
+            route_critic_decision,
+            {
+                "supervisor_plan": "supervisor_plan",
+                "supervisor_report": "supervisor_report",
+            }
+        )
 
     # Supervisor Report -> END
     workflow.add_edge("supervisor_report", END)
 
     return workflow.compile()
+
+
+def create_full_investigation_graph(worker_stubs: bool = False):
+    """Builds and compiles the complete end-to-end multi-agent investigation StateGraph.
+    
+    Includes all 7 agent nodes with the Critic/Verifier feedback loop.
+    """
+    return create_investigation_graph(worker_stubs=worker_stubs, full_pipeline=True)
