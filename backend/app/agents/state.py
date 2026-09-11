@@ -41,8 +41,13 @@ class InvestigationState(TypedDict):
     tool_history: List[ToolInvocation]
     iteration: int
     final_answer: Optional[str] 
+    full_pipeline: Optional[bool]
 
-def initial_state(user_query: str, subject_entity_id: Optional[str] = None) -> InvestigationState:
+def initial_state(
+    user_query: str,
+    subject_entity_id: Optional[str] = None,
+    full_pipeline: bool = False,
+) -> InvestigationState:
     """Helper to start an investigation with a clean, empty state. """
     return {
         "user_query": user_query,
@@ -59,5 +64,6 @@ def initial_state(user_query: str, subject_entity_id: Optional[str] = None) -> I
         "tool_history": [],
         "iteration": 0,
         "final_answer": None,
+        "full_pipeline": full_pipeline,
     }
 
