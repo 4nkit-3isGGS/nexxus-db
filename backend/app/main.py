@@ -11,7 +11,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.neo4j_driver import db
-from backend.app.api import ingestion_routes, entity_routes, graph_routes, health_routes
+from backend.app.api import ingestion_routes, entity_routes, graph_routes, health_routes, investigation_routes, audit_routes
 
 
 @asynccontextmanager
@@ -46,6 +46,8 @@ app.include_router(ingestion_routes.router)
 app.include_router(entity_routes.router)
 app.include_router(entity_routes.entities_router)
 app.include_router(graph_routes.router)
+app.include_router(investigation_routes.router)
+app.include_router(audit_routes.router)
 
 
 @app.get("/")
