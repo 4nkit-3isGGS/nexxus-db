@@ -13,3 +13,4 @@ langchain-core
 langchain-community
 langchain-groq
 langgraph
+networkx>=3.0
