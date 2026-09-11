@@ -23,7 +23,7 @@ def financial_analyst_node(state: InvestigationState) -> Dict[str, Any]:
         - tool_history
     """
     subject_id = state.get("subject_entity_id") or "P001"
-    cur_iter = state.get("iteration", 0) + 1
+    cur_iter = state.get("iteration", 0) or 1
     
     entities = state.get("discovered_entities", [])
     relationships = state.get("discovered_relationships", [])
