@@ -18,12 +18,16 @@ from backend.app.agents.nodes.supervisor import (
     supervisor_report_node,
     route_next_step,
     create_investigation_graph,
+    create_full_investigation_graph,
     MAX_ITERATIONS,
 )
 from backend.app.agents.nodes.graph_investigator import graph_investigator_node
 from backend.app.agents.nodes.risk_analyst import risk_analyst_node
 from backend.app.agents.nodes.evidence_verifier import evidence_verifier_node
 from backend.app.agents.nodes.financial_analyst import financial_analyst_node
+from backend.app.agents.nodes.analysis_agent import analysis_agent_node
+from backend.app.agents.nodes.critic_verifier import critic_verifier_node, route_critic_decision
+from backend.app.agents.nodes.report_agent import report_agent_node
 
 __all__ = [
     "supervisor_plan_node",
@@ -31,10 +35,15 @@ __all__ = [
     "supervisor_report_node",
     "route_next_step",
     "create_investigation_graph",
+    "create_full_investigation_graph",
     "MAX_ITERATIONS",
     "graph_investigator_node",
     "risk_analyst_node",
     "evidence_verifier_node",
     "financial_analyst_node",
+    "analysis_agent_node",
+    "critic_verifier_node",
+    "route_critic_decision",
+    "report_agent_node",
 ]
 
