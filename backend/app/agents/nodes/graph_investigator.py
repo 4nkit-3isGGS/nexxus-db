@@ -32,7 +32,7 @@ def graph_investigator_node(state: InvestigationState) -> Dict[str, Any]:
         - tool_history
     """
     subject_id = state.get("subject_entity_id") or "P001"
-    cur_iter = state.get("iteration", 0) + 1
+    cur_iter = state.get("iteration", 0) or 1
     
     existing_entities: List[Dict[str, Any]] = list(state.get("discovered_entities", []))
     existing_relationships: List[Dict[str, Any]] = list(state.get("discovered_relationships", []))
