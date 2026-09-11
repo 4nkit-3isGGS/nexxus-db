@@ -76,8 +76,9 @@ def resolve_subject_entity(
     candidates = extract_potential_names_or_ids(query)
     for candidate in candidates:
         search_res = search_entities_tool.invoke({"query": candidate, "limit": 5})
-        if search_res.get("count", 0) > 0:
-            top_match = search_res["results"][0]
+        matches = search_res.get("result", search_res.get("results", []))
+        if matches:
+            top_match = matches[0]
             return top_match.get("id"), top_match
 
     return None, None
