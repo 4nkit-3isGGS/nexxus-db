@@ -73,21 +73,28 @@
 
 ### 📅 Day 2: Reasoning, Verification Loop & End-to-End Delivery
 
-- [ ] **Phase 4: Analysis & Hypothesis Engine (Morning Day 2)**
-  - [ ] Implement `Analysis Agent` node that correlates graph + risk + evidence into structured hypotheses (`SUPPORTED`, `WEAK`, `REJECTED`).
-  - [ ] Test bridge suspect scenario (e.g., detecting if a subject acts as a cut-out or connector between distinct communities).
+- [x] **Phase 4: Analysis & Hypothesis Engine (Morning Day 2)**
+  - [x] Implement `Analysis Agent` node that correlates graph + risk + evidence into structured hypotheses (`SUPPORTED`, `WEAK`, `REJECTED`).
+  - [x] Test bridge suspect scenario (e.g., detecting if a subject acts as a cut-out or connector between distinct communities).
+  - [x] Test burner phone proliferation and financial layering / mule account detection.
 
-- [ ] **Phase 5: Critic / Verifier & Conditional Loop (Afternoon Day 2)**
-  - [ ] Implement `Critic / Verifier` agent node (evaluates evidentiary support, checks for single-source bias, verifies hash provenance).
-  - [ ] Add conditional LangGraph edge:
+- [x] **Phase 5: Critic / Verifier & Conditional Loop (Afternoon Day 2)**
+  - [x] Implement `Critic / Verifier` agent node (evaluates evidentiary support, checks for single-source bias, verifies hash provenance).
+  - [x] Add conditional LangGraph edge:
     - If evidence is weak and `iteration < MAX_ITERATIONS` $\rightarrow$ Route back to `Supervisor` to re-plan.
     - If evidence is sufficient or budget exhausted $\rightarrow$ Route to `Report Agent`.
-  - [ ] Implement iteration guardrail (`MAX_ITERATIONS = 6`).
+  - [x] Implement iteration guardrail (`MAX_ITERATIONS = 10`).
 
-- [ ] **Phase 6: Report Generation & API Exposure (Evening Day 2)**
-  - [ ] Implement `Report Agent` node (formats grounded intelligence dossier with timeline, confidence scores, and source citations).
-  - [ ] Expose FastAPI endpoint `POST /api/investigate` for Bishal & Jayanta's frontend UI.
-  - [ ] Run full end-to-end integration test with mock and live graph scenarios.
+- [x] **Phase 6: Report Generation & API Exposure (Evening Day 2)**
+  - [x] Implement `Report Agent` node (formats grounded intelligence dossier with timeline, confidence scores, and source citations).
+  - [x] Expose FastAPI endpoint `POST /api/investigate` for Bishal & Jayanta's frontend UI.
+  - [x] Run full end-to-end integration test with mock and live graph scenarios (13/13 passing tests).
+
+- [x] **Phase 7: Law Enforcement RBAC & Tamper-Evident Audit Logging (SIH PPT Requirement)**
+  - [x] Multi-tier authorization matrix (`ADMIN`, `LEAD_INVESTIGATOR`, `INVESTIGATOR`, `ANALYST`, `AUDITOR`).
+  - [x] Dynamic PII redaction (`Aadhaar`, `PAN`, `Phone`) preserving last 4 digits for field investigators and full masking for crime analysts.
+  - [x] Section 65B Bharatiya Sakshya Adhiniyam (BSA) append-only SHA-256 cryptographic hash-chain ($H_n = \text{SHA-256}(H_{n-1} + \dots)$).
+  - [x] Mathematical tampering and severed-link detection verification engine (`POST /api/audit/verify` and `GET /api/audit/logs`).
 
 ---
 
