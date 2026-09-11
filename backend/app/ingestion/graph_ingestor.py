@@ -33,18 +33,36 @@ def get_person_candidates() -> list:
 
 def create_new_person(suspect: dict, source_doc: str) -> str:
     """Creates a new Person node in Neo4j with a generated UUID.
+    Applies field-level AES-256 encryption and HMAC blind indexing for PII.
 
     Returns the generated person_id for use in linking relationships.
     """
+    from backend.app.security.encryption import encrypt_pii, generate_blind_index
+
     norm_name = normalize_name(suspect.get("name"))
     person_id = f"P-{uuid.uuid4()}"
     timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+    aadhaar = suspect.get("aadhaar")
+    pan = suspect.get("pan")
+
+    enc_aadhaar = encrypt_pii(aadhaar) if aadhaar else None
+    enc_pan = encrypt_pii(pan) if pan else None
+    b_idx_aadhaar = generate_blind_index(aadhaar) if aadhaar else None
+    b_idx_pan = generate_blind_index(pan) if pan else None
 
     cypher_query = """
     MERGE (p:Person {id: $id})
     SET p.name = $name,
         p.normalized_name = $normalized_name,
         p.aliases = $aliases,
+        p.father_name = $father_name,
+        p.age = $age,
+        p.gender = $gender,
+        p.aadhaar_encrypted = $aadhaar_enc,
+        p.pan_encrypted = $pan_enc,
+        p.aadhaar_blind_index = $aadhaar_bidx,
+        p.pan_blind_index = $pan_bidx,
         p.created_at = $timestamp,
         p.updated_at = $timestamp
     """
@@ -53,6 +71,13 @@ def create_new_person(suspect: dict, source_doc: str) -> str:
         "name": suspect.get("name"),
         "normalized_name": norm_name,
         "aliases": suspect.get("aliases", []),
+        "father_name": suspect.get("father_name"),
+        "age": suspect.get("age"),
+        "gender": suspect.get("gender"),
+        "aadhaar_enc": enc_aadhaar,
+        "pan_enc": enc_pan,
+        "aadhaar_bidx": b_idx_aadhaar,
+        "pan_bidx": b_idx_pan,
         "timestamp": timestamp,
     })
 
@@ -656,6 +681,7 @@ def ingest_rel_owns_vehicle(rel: dict, id_map: dict):
     cypher = f"""
     MATCH (p:Person {{id: $pid}}), (v:Vehicle {{id: $vid}})
     MERGE (p)-[r:OWNS_VEHICLE]->(v)
+
     SET {prop_set}
     """
     db.query(cypher, params)
