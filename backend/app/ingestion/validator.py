@@ -5,7 +5,7 @@ Validates incoming NLP payloads before entity resolution and graph ingestion.
 Guarantees schema correctness, referential integrity, and field boundaries.
 """
 
-ALLOWED_ENTITY_TYPES = {"Person", "Phone", "Location", "Vehicle", "Organization"}
+ALLOWED_ENTITY_TYPES = {"Person", "Phone", "Location", "Vehicle", "Organization","CryptoWallet", "IPAddress", "IMEI"}
 ALLOWED_REL_TYPES = {
     "CALLED",
     "MEMBER_OF",
@@ -13,6 +13,10 @@ ALLOWED_REL_TYPES = {
     "PRESENT_AT",
     "OWNS_VEHICLE",
     "TRANSACTED_WITH",
+    "CONTROLS_WALLET", 
+    "TRANSFERRED_FUNDS",
+     "BOUND_TO_IMEI", 
+     "ACCESSED_VIA",
 }
 
 
@@ -47,7 +51,7 @@ def validate_nlp_payload(payload: dict) -> tuple[bool, list[str]]:
     if errors:
         return False, errors
 
-    # TODO: Step 2 — Entity Validation
+    #  Step 2 — Entity Validation
     seen_entity_ids = set()
 
     for idx, entity in enumerate(entities):
@@ -68,6 +72,23 @@ def validate_nlp_payload(payload: dict) -> tuple[bool, list[str]]:
                 f"Entity '{entity_id or idx}': invalid 'type' '{entity_type}'. "
                 f"Must be one of {sorted(ALLOWED_ENTITY_TYPES)}"
             )
+        elif entity_type == "CryptoWallet":
+            addr = entity.get("address") or entity.get("wallet_address")
+            if not addr or not str(addr).strip():
+                errors.append(f"CryptoWallet entity '{entity_id}': missing or empty 'address'")
+            curr = entity.get("currency") or entity.get("network")
+            if not curr or not str(curr).strip():
+                errors.append(f"CryptoWallet entity '{entity_id}': missing or empty 'currency'")
+        elif entity_type == "IPAddress":
+            ip_val = entity.get("ip") or entity.get("ip_address")
+            if not ip_val or not str(ip_val).strip():
+                errors.append(f"IPAddress entity '{entity_id}': missing or empty 'ip'")
+        elif entity_type == "IMEI":
+            imei_val = str(entity.get("imei") or "").strip()
+            if not imei_val:
+                errors.append(f"IMEI entity '{entity_id}': missing or empty 'imei'")
+            elif not imei_val.isdigit() or not (14 <= len(imei_val) <= 16):
+                errors.append(f"IMEI entity '{entity_id}': invalid IMEI format '{imei_val}' (must be 14-16 digits)")
 
 
     # Step 3 — Relationship Validation & Referential Integrity
