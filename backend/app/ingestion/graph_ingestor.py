@@ -7,6 +7,8 @@ relationships into Neo4j.
 """
 
 import uuid
+import json
+import hashlib
 from datetime import datetime, timezone
 
 from backend.app.neo4j_driver import db
@@ -368,6 +370,115 @@ def ingest_organization(org: dict | str, source_doc: str = "UNKNOWN") -> str:
         return create_new_organization(org, source_doc)
 
 
+def ingest_cryptowallet(wallet: dict, source_doc: str = "UNKNOWN") -> str:
+    """Creates or updates a CryptoWallet node in Neo4j.
+    Dedupes on address. Attaches exchange tag, risk score, and currency.
+    """
+    address = wallet.get("address", "").strip()
+    currency = str(wallet.get("currency", "UNKNOWN")).upper().strip()
+    wallet_id = f"CW-{uuid.uuid4()}"
+    timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+    cypher = """
+    MERGE (cw:CryptoWallet {address: $address})
+    ON CREATE SET cw.id = $id,
+                  cw.currency = $currency,
+                  cw.exchange_tag = $exchange_tag,
+                  cw.risk_score = $risk_score,
+                  cw.source_doc_id = $src,
+                  cw.created_at = $ts,
+                  cw.updated_at = $ts
+    ON MATCH SET cw.currency = COALESCE(cw.currency, $currency),
+                 cw.exchange_tag = COALESCE($exchange_tag, cw.exchange_tag),
+                 cw.risk_score = COALESCE($risk_score, cw.risk_score),
+                 cw.updated_at = $ts
+    RETURN cw.id AS id
+    """
+    res = db.query(cypher, {
+        "id": wallet_id,
+        "address": address,
+        "currency": currency,
+        "exchange_tag": wallet.get("exchange_tag"),
+        "risk_score": float(wallet.get("risk_score", 0.0)) if wallet.get("risk_score") is not None else 0.0,
+        "src": source_doc,
+        "ts": timestamp,
+    })
+    return res[0]["id"] if res else wallet_id
+
+
+def ingest_ip_address(ip_entity: dict, source_doc: str = "UNKNOWN") -> str:
+    """Creates or updates an IPAddress node in Neo4j.
+    Tags infrastructure attributes (ISP, ASN, VPN, Tor).
+    """
+    ip = ip_entity.get("ip", "").strip()
+    ip_id = f"IP-{uuid.uuid4()}"
+    timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+    cypher = """
+    MERGE (ip:IPAddress {ip: $ip})
+    ON CREATE SET ip.id = $id,
+                  ip.isp = $isp,
+                  ip.asn = $asn,
+                  ip.is_vpn = $is_vpn,
+                  ip.is_tor = $is_tor,
+                  ip.country = $country,
+                  ip.source_doc_id = $src,
+                  ip.created_at = $ts,
+                  ip.updated_at = $ts
+    ON MATCH SET ip.isp = COALESCE($isp, ip.isp),
+                 ip.asn = COALESCE($asn, ip.asn),
+                 ip.is_vpn = COALESCE($is_vpn, ip.is_vpn),
+                 ip.is_tor = COALESCE($is_tor, ip.is_tor),
+                 ip.country = COALESCE($country, ip.country),
+                 ip.updated_at = $ts
+    RETURN ip.id AS id
+    """
+    res = db.query(cypher, {
+        "id": ip_id,
+        "ip": ip,
+        "isp": ip_entity.get("isp"),
+        "asn": ip_entity.get("asn"),
+        "is_vpn": bool(ip_entity.get("is_vpn", False)),
+        "is_tor": bool(ip_entity.get("is_tor", False)),
+        "country": ip_entity.get("country"),
+        "src": source_doc,
+        "ts": timestamp,
+    })
+    return res[0]["id"] if res else ip_id
+
+
+def ingest_imei(imei_entity: dict, source_doc: str = "UNKNOWN") -> str:
+    """Creates or updates an IMEI device node in Neo4j.
+    Tracks device models and SIM box flags.
+    """
+    imei = str(imei_entity.get("imei", "")).strip()
+    imei_id = f"IMEI-{uuid.uuid4()}"
+    timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+    cypher = """
+    MERGE (im:IMEI {imei: $imei})
+    ON CREATE SET im.id = $id,
+                  im.device_model = $device_model,
+                  im.is_sim_box = $is_sim_box,
+                  im.source_doc_id = $src,
+                  im.created_at = $ts,
+                  im.updated_at = $ts
+    ON MATCH SET im.device_model = COALESCE($device_model, im.device_model),
+                 im.is_sim_box = COALESCE($is_sim_box, im.is_sim_box),
+                 im.updated_at = $ts
+    RETURN im.id AS id
+    """
+    res = db.query(cypher, {
+        "id": imei_id,
+        "imei": imei,
+        "device_model": imei_entity.get("device_model"),
+        "is_sim_box": bool(imei_entity.get("is_sim_box", False)),
+        "src": source_doc,
+        "ts": timestamp,
+    })
+    return res[0]["id"] if res else imei_id
+
+
 # ─── Orchestrator Functions ──────────────────────────────────────────────────
 
 
@@ -583,6 +694,126 @@ def ingest_rel_transacted_with(rel: dict, id_map: dict):
     )
 
 
+def ingest_rel_controls_wallet(rel: dict, id_map: dict):
+    """Handles CONTROLS_WALLET: Person → CryptoWallet."""
+    source_doc = rel.get("source_doc", "UNKNOWN")
+    timestamp = rel.get("timestamp") or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+    person_neo4j_id = id_map.get(rel["source"], {}).get("_neo4j_id", rel["source"])
+    wallet_neo4j_id = id_map.get(rel["target"], {}).get("_neo4j_id", rel["target"])
+
+    prop_parts = ["r.source_doc_id = $src", "r.timestamp = $ts"]
+    params = {"pid": person_neo4j_id, "wid": wallet_neo4j_id, "src": source_doc, "ts": timestamp}
+
+    if rel.get("confidence") is not None:
+        prop_parts.append("r.confidence = $conf")
+        params["conf"] = rel["confidence"]
+    if rel.get("evidence"):
+        prop_parts.append("r.evidence = $evidence")
+        params["evidence"] = rel["evidence"]
+
+    prop_set = ", ".join(prop_parts)
+    cypher = f"""
+    MATCH (p:Person {{id: $pid}}), (cw:CryptoWallet {{id: $wid}})
+    MERGE (p)-[r:CONTROLS_WALLET]->(cw)
+    SET {prop_set}
+    """
+    db.query(cypher, params)
+
+
+def ingest_rel_transferred_funds(rel: dict, id_map: dict):
+    """Handles TRANSFERRED_FUNDS: CryptoWallet → CryptoWallet (or Person/Entity via wallets)."""
+    source_doc = rel.get("source_doc", "UNKNOWN")
+    timestamp = rel.get("timestamp") or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+    src_id = id_map.get(rel["source"], {}).get("_neo4j_id", rel["source"])
+    tgt_id = id_map.get(rel["target"], {}).get("_neo4j_id", rel["target"])
+
+    prop_parts = ["r.source_doc_id = $src", "r.timestamp = $ts"]
+    params = {"src_id": src_id, "tgt_id": tgt_id, "src": source_doc, "ts": timestamp}
+
+    if rel.get("amount") is not None:
+        prop_parts.append("r.amount = $amount")
+        params["amount"] = float(rel["amount"])
+    if rel.get("tx_hash"):
+        prop_parts.append("r.tx_hash = $tx_hash")
+        params["tx_hash"] = rel["tx_hash"]
+    if rel.get("network"):
+        prop_parts.append("r.network = $network")
+        params["network"] = rel["network"]
+    if rel.get("confidence") is not None:
+        prop_parts.append("r.confidence = $conf")
+        params["conf"] = rel["confidence"]
+    if rel.get("evidence"):
+        prop_parts.append("r.evidence = $evidence")
+        params["evidence"] = rel["evidence"]
+
+    prop_set = ", ".join(prop_parts)
+    cypher = f"""
+    MATCH (s {{id: $src_id}}), (t {{id: $tgt_id}})
+    MERGE (s)-[r:TRANSFERRED_FUNDS]->(t)
+    SET {prop_set}
+    """
+    db.query(cypher, params)
+
+
+def ingest_rel_bound_to_imei(rel: dict, id_map: dict):
+    """Handles BOUND_TO_IMEI: Phone → IMEI (detects SIM-box proliferation)."""
+    source_doc = rel.get("source_doc", "UNKNOWN")
+    timestamp = rel.get("timestamp") or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+    phone_neo4j_id = id_map.get(rel["source"], {}).get("_neo4j_id", rel["source"])
+    imei_neo4j_id = id_map.get(rel["target"], {}).get("_neo4j_id", rel["target"])
+
+    prop_parts = ["r.source_doc_id = $src", "r.timestamp = $ts"]
+    params = {"ph_id": phone_neo4j_id, "im_id": imei_neo4j_id, "src": source_doc, "ts": timestamp}
+
+    if rel.get("confidence") is not None:
+        prop_parts.append("r.confidence = $conf")
+        params["conf"] = rel["confidence"]
+    if rel.get("evidence"):
+        prop_parts.append("r.evidence = $evidence")
+        params["evidence"] = rel["evidence"]
+
+    prop_set = ", ".join(prop_parts)
+    cypher = f"""
+    MATCH (ph:Phone {{id: $ph_id}}), (im:IMEI {{id: $im_id}})
+    MERGE (ph)-[r:BOUND_TO_IMEI]->(im)
+    SET {prop_set}
+    """
+    db.query(cypher, params)
+
+
+def ingest_rel_accessed_via(rel: dict, id_map: dict):
+    """Handles ACCESSED_VIA: Person or Phone → IPAddress."""
+    source_doc = rel.get("source_doc", "UNKNOWN")
+    timestamp = rel.get("timestamp") or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+    src_id = id_map.get(rel["source"], {}).get("_neo4j_id", rel["source"])
+    ip_neo4j_id = id_map.get(rel["target"], {}).get("_neo4j_id", rel["target"])
+
+    prop_parts = ["r.source_doc_id = $src", "r.timestamp = $ts"]
+    params = {"src_id": src_id, "ip_id": ip_neo4j_id, "src": source_doc, "ts": timestamp}
+
+    if rel.get("service_accessed"):
+        prop_parts.append("r.service_accessed = $service")
+        params["service"] = rel["service_accessed"]
+    if rel.get("confidence") is not None:
+        prop_parts.append("r.confidence = $conf")
+        params["conf"] = rel["confidence"]
+    if rel.get("evidence"):
+        prop_parts.append("r.evidence = $evidence")
+        params["evidence"] = rel["evidence"]
+
+    prop_set = ", ".join(prop_parts)
+    cypher = f"""
+    MATCH (s {{id: $src_id}}), (ip:IPAddress {{id: $ip_id}})
+    MERGE (s)-[r:ACCESSED_VIA]->(ip)
+    SET {prop_set}
+    """
+    db.query(cypher, params)
+
+
 # Relationship handler dispatch table
 _REL_HANDLERS = {
     "CALLED": ingest_rel_called,
@@ -591,6 +822,10 @@ _REL_HANDLERS = {
     "PRESENT_AT": ingest_rel_present_at,
     "OWNS_VEHICLE": ingest_rel_owns_vehicle,
     "TRANSACTED_WITH": ingest_rel_transacted_with,
+    "CONTROLS_WALLET": ingest_rel_controls_wallet,
+    "TRANSFERRED_FUNDS": ingest_rel_transferred_funds,
+    "BOUND_TO_IMEI": ingest_rel_bound_to_imei,
+    "ACCESSED_VIA": ingest_rel_accessed_via,
 }
 
 
@@ -604,11 +839,15 @@ def ingest_nlp_payload(payload: dict) -> dict:
         {"id": "PH001", "type": "Phone", "source_doc": "FIR_101", "number": "9434567123"},
         {"id": "LOC001", "type": "Location", "source_doc": "FIR_101", "name": "Bidhannagar", ...},
         {"id": "VEH001", "type": "Vehicle", "source_doc": "FIR_101", "registration_number": "WB02CD5678", ...},
-        {"id": "ORG001", "type": "Organization", "source_doc": "FIR_101", "name": "Shubh Laxmi Finance"}
+        {"id": "ORG001", "type": "Organization", "source_doc": "FIR_101", "name": "Shubh Laxmi Finance"},
+        {"id": "CW001", "type": "CryptoWallet", "source_doc": "FIR_101", "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", "currency": "BTC"},
+        {"id": "IP001", "type": "IPAddress", "source_doc": "FIR_101", "ip": "185.220.101.5", "is_tor": true},
+        {"id": "IM001", "type": "IMEI", "source_doc": "FIR_101", "imei": "860123456789012", "is_sim_box": true}
       ],
       "relationships": [
         {"source": "PH002", "target": "PH003", "type": "CALLED", "confidence": 0.95, ...},
-        {"source": "P004", "target": "ORG001", "type": "MEMBER_OF", ...}
+        {"source": "P004", "target": "ORG001", "type": "MEMBER_OF", ...},
+        {"source": "P001", "target": "CW001", "type": "CONTROLS_WALLET", ...}
       ]
     }
 
@@ -616,7 +855,9 @@ def ingest_nlp_payload(payload: dict) -> dict:
       1. Build entity ID → entity lookup map
       2. Ingest Person entities (with entity resolution)
       3. Ingest Phone, Location, Vehicle, Organization entities
-      4. Process all relationships via type-specific handlers
+      4. Ingest Cyber entities: CryptoWallet, IPAddress, IMEI
+      5. Process all relationships via type-specific handlers
+      6. Append-only cryptographic hash-chain audit logging under BSA §65B
 
     Returns a summary dict.
     """
@@ -638,12 +879,14 @@ def ingest_nlp_payload(payload: dict) -> dict:
     locations = [e for e in entities if e.get("type") == "Location"]
     vehicles = [e for e in entities if e.get("type") == "Vehicle"]
     organizations = [e for e in entities if e.get("type") == "Organization"]
+    wallets = [e for e in entities if e.get("type") == "CryptoWallet"]
+    ips = [e for e in entities if e.get("type") == "IPAddress"]
+    imeis = [e for e in entities if e.get("type") == "IMEI"]
 
     # ── 1. Ingest Person entities (with entity resolution) ──
     for person in persons:
         source_doc = person.get("source_doc", "UNKNOWN")
         resolved_id = ingest_suspect(person, source_doc)
-        # Store the Neo4j ID back into id_map so relationship handlers can find it
         id_map[person["id"]]["_neo4j_id"] = resolved_id
 
     # ── 2. Ingest Phone entities ──
@@ -668,7 +911,6 @@ def ingest_nlp_payload(payload: dict) -> dict:
             lat=loc.get("latitude"),
             lon=loc.get("longitude"),
         )
-        # Update id_map with the actual ID used in Neo4j
         id_map[loc["id"]]["_neo4j_id"] = loc_id
 
     # ── 4. Ingest Vehicle entities ──
@@ -688,12 +930,33 @@ def ingest_nlp_payload(payload: dict) -> dict:
         )
         id_map[org["id"]]["_neo4j_id"] = org_id
 
-    # ── 6. Process relationships ──
+    # ── 6. Ingest Cybercrime & Blockchain Entities ──
+    for wallet in wallets:
+        cw_id = ingest_cryptowallet(
+            wallet=wallet,
+            source_doc=wallet.get("source_doc", "UNKNOWN"),
+        )
+        id_map[wallet["id"]]["_neo4j_id"] = cw_id
+
+    for ip_item in ips:
+        ip_id = ingest_ip_address(
+            ip_entity=ip_item,
+            source_doc=ip_item.get("source_doc", "UNKNOWN"),
+        )
+        id_map[ip_item["id"]]["_neo4j_id"] = ip_id
+
+    for imei_item in imeis:
+        im_id = ingest_imei(
+            imei_entity=imei_item,
+            source_doc=imei_item.get("source_doc", "UNKNOWN"),
+        )
+        id_map[imei_item["id"]]["_neo4j_id"] = im_id
+
+    # ── 7. Process relationships ──
     rel_count = 0
     skipped = 0
     for rel in relationships:
         rel_type = rel.get("type", "")
-        # Convert to dict if it's a Pydantic model
         rel_data = rel if isinstance(rel, dict) else rel.dict()
 
         handler = _REL_HANDLERS.get(rel_type)
@@ -708,12 +971,37 @@ def ingest_nlp_payload(payload: dict) -> dict:
             print(f"[Ingestion Warning] Unknown relationship type: {rel_type}")
             skipped += 1
 
+    # ── 8. Cryptographic Hash-Chain Audit Logging (Section 65B BSA) ──
+    try:
+        from backend.app.audit.audit_logger import audit_ledger
+        payload_bytes = json.dumps(payload, sort_keys=True).encode("utf-8")
+        payload_hash = hashlib.sha256(payload_bytes).hexdigest()
+        audit_ledger.log_event(
+            user_id="INGESTION_ENGINE",
+            badge_number="SYSTEM-AUTO",
+            role="SYSTEM",
+            action="INGEST_PAYLOAD",
+            resource_type="GRAPH_PAYLOAD",
+            resource_id=payload_hash[:16],
+            details={
+                "payload_sha256": payload_hash,
+                "entities_count": len(entities),
+                "relationships_count": rel_count,
+                "cyber_entities": len(wallets) + len(ips) + len(imeis),
+            },
+        )
+    except Exception as e:
+        print(f"[Audit Warning] Could not record ingestion block: {e}")
+
     return {
         "persons_ingested": len(persons),
         "phones_ingested": len(phones),
         "locations_ingested": len(locations),
         "vehicles_ingested": len(vehicles),
         "organizations_ingested": len(organizations),
+        "wallets_ingested": len(wallets),
+        "ip_addresses_ingested": len(ips),
+        "imeis_ingested": len(imeis),
         "relationships_ingested": rel_count,
         "relationships_skipped": skipped,
     }
