@@ -662,36 +662,66 @@ def ingest_rel_owns_vehicle(rel: dict, id_map: dict):
 
 
 def ingest_rel_transacted_with(rel: dict, id_map: dict):
-    """Handles TRANSACTED_WITH: Person → Person (looked up via Phone IDs)."""
-    src_entity = id_map.get(rel["source"], {})
-    tgt_entity = id_map.get(rel["target"], {})
+    """Handles TRANSACTED_WITH: Person → Person (or Phone → Phone)."""
+    source_id = rel.get("source", "")
+    target_id = rel.get("target", "")
+
+    src_entity = id_map.get(source_id, {})
+    tgt_entity = id_map.get(target_id, {})
 
     src_phone = src_entity.get("number", "")
     tgt_phone = tgt_entity.get("number", "")
-
-    if not src_phone or not tgt_phone:
-        print(f"[Ingestion Warning] TRANSACTED_WITH: could not resolve phones for {rel['source']} → {rel['target']}")
-        return
 
     props = {}
     if rel.get("timestamp"):
         props["timestamp"] = rel["timestamp"]
     if rel.get("amount") is not None:
-        props["amount"] = rel["amount"]
+        props["amount"] = float(rel["amount"])
     if rel.get("transaction_id"):
         props["transaction_id"] = rel["transaction_id"]
     if rel.get("confidence") is not None:
-        props["confidence"] = rel["confidence"]
+        props["confidence"] = rel["confid
+        ence"]
     if rel.get("evidence"):
         props["evidence"] = rel["evidence"]
 
-    ingest_relationship(
-        source_phone=src_phone,
-        target_phone=tgt_phone,
-        rel_type="TRANSACTED_WITH",
-        properties=props,
-        source_doc=rel.get("source_doc", "UNKNOWN"),
-    )
+    if src_phone and tgt_phone:
+        ingest_relationship(
+            source_phone=src_phone,
+            target_phone=tgt_phone,
+            rel_type="TRANSACTED_WITH",
+            properties=props,
+            source_doc=rel.get("source_doc", "UNKNOWN"),
+        )
+    else:
+        # Fallback to direct entity link (e.g. Person -> Person)
+        src_neo4j = src_entity.get("_neo4j_id", source_id)
+        tgt_neo4j = tgt_entity.get("_neo4j_id", target_id)
+        source_doc = rel.get("source_doc", "UNKNOWN")
+        timestamp = rel.get("timestamp") or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+        prop_parts = ["r.source_doc_id = $src", "r.timestamp = $ts"]
+        params = {"src_id": src_neo4j, "tgt_id": tgt_neo4j, "src": source_doc, "ts": timestamp}
+        if "amount" in props:
+            prop_parts.append("r.amount = $amount")
+            params["amount"] = props["amount"]
+        if "transaction_id" in props:
+            prop_parts.append("r.transaction_id = $tx_id")
+            params["tx_id"] = props["transaction_id"]
+        if "confidence" in props:
+            prop_parts.append("r.confidence = $conf")
+            params["conf"] = props["confidence"]
+        if "evidence" in props:
+            prop_parts.append("r.evidence = $evidence")
+            params["evidence"] = props["evidence"]
+
+        prop_set = ", ".join(prop_parts)
+        cypher = f"""
+        MATCH (p1 {{id: $src_id}}), (p2 {{id: $tgt_id}})
+        MERGE (p1)-[r:TRANSACTED_WITH]->(p2)
+        SET {prop_set}
+        """
+        db.query(cypher, params)
 
 
 def ingest_rel_controls_wallet(rel: dict, id_map: dict):
