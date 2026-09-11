@@ -680,8 +680,7 @@ def ingest_rel_transacted_with(rel: dict, id_map: dict):
     if rel.get("transaction_id"):
         props["transaction_id"] = rel["transaction_id"]
     if rel.get("confidence") is not None:
-        props["confidence"] = rel["confid
-        ence"]
+        props["confidence"] = rel["confidence"]
     if rel.get("evidence"):
         props["evidence"] = rel["evidence"]
 
