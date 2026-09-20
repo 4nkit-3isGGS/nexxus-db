@@ -12,6 +12,7 @@ langchain
 langchain-core
 langchain-community
 langchain-groq
+langchain-openai
 langgraph
 networkx>=3.0
 cryptography>=42.0.0
