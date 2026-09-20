@@ -42,7 +42,9 @@ def get_llm(temperature: float = 0.1, model_name: Optional[str] = None):
     groq_key = os.getenv("GROQ_API_KEY", "").strip()
     if groq_key:
         try:
-            from langchain_groq import ChatGroq
+            import importlib
+            groq_mod = importlib.import_module("langchain_groq")
+            ChatGroq = getattr(groq_mod, "ChatGroq")
             default_model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
             return ChatGroq(
                 groq_api_key=groq_key,
@@ -59,7 +61,9 @@ def get_llm(temperature: float = 0.1, model_name: Optional[str] = None):
     openai_key = os.getenv("OPENAI_API_KEY", "").strip()
     if openai_key:
         try:
-            from langchain_openai import ChatOpenAI
+            import importlib
+            openai_mod = importlib.import_module("langchain_openai")
+            ChatOpenAI = getattr(openai_mod, "ChatOpenAI")
             chosen_model = model_name or os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip() or "gpt-4o-mini"
             base_url = (
                 os.getenv("OPENAI_API_BASE", "").strip()
